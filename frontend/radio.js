@@ -1,6 +1,6 @@
 new (class {
     constructor() {
-        this.websocket = new WebSocket("ws://localhost:8000/stream");
+        this.websocket = new WebSocket(`${location.protocol === "https:" ? "wss" : "ws"}://${location.host}/stream`);
         this.websocket.addEventListener("open", () => {
             this.websocket.addEventListener("message", (e) => {
                 const data = JSON.parse(e.data);
