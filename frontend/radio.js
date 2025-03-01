@@ -97,13 +97,11 @@ new (class {
                         lag >= 150 ? "yellow" :
                         "green";
 
-
-
                     if (this.pings <= 5) {
                         document.querySelector("footer span:last-child").innerText = `Connected (${lag}ms)`;
                     }
                     document.querySelector("footer span:last-child").innerText =
-                        `Connected (${lag}ms; Lowest: ${this.lowest}ms, Highest: ${this.highest}ms, Avg: ${(this.total / this.pings).toFixed(3)}ms)`;
+                        `Connected (${lag}ms; Lowest: ${this.lowest}ms, Highest: ${this.highest}ms, Avg: ${(this.total / this.pings).toFixed(2)}ms)`;
                 }
         }
     }
