@@ -63,9 +63,13 @@ async def stream_task(app: FastAPI) -> None:
             for client in app.state.clients:
                 await client.send_json({"type": "heartbeat", "data": {
                     "time": round(time.time()) - app.state.start, 
-                    "users": len(app.state.clients)
-                    }
-                })
+                    "users": len(app.state.clients),
+                    "votes": len(app.state.voters)
+                }})
+
+            if app.state.clients and (len(app.state.voters) >= len(app.state.clients) / 2):
+                app.state.voters = set()
+                break
 
             await asyncio.sleep(1)
 
@@ -81,6 +85,7 @@ app.mount("/audio", StaticFiles(directory = MUSIC_LOCATION))
 app.state.clients = set()
 app.state.start = 0
 app.state.current_song = None
+app.state.voters = set()
 
 # Handle connection socket
 @app.websocket("/stream")
@@ -90,7 +95,8 @@ async def stream_endpoint(websocket: WebSocket) -> None:
     try:
         await websocket.send_json({"type": "update", "data": app.state.current_song})
         while True:
-            await websocket.receive_text()
+            if await websocket.receive_text() == "voteskip" and websocket not in app.state.voters:
+                app.state.voters.add(websocket)
 
     except WebSocketDisconnect:
         app.state.clients.remove(websocket)

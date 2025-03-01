@@ -63,18 +63,6 @@ progress {
 }
 progress::-moz-progress-bar { background: rgb(1, 114, 173); }
 progress::-webkit-progress-value { background: rgb(1, 114, 173); }
-footer {
-    left: 10px;
-    bottom: 10px;
-    font-family: monospace;
-    position: absolute;
-    width: calc(100% - 20px);
-    display: flex;
-    justify-content: space-between;
-}
-footer > span:last-child {
-    margin-left: auto;
-}
 section > h2 {
     margin-bottom: 10px;
 }
@@ -96,6 +84,13 @@ header > a {
 }
 header > a:hover {
     text-decoration: underline dotted;
+}
+footer {
+    right: 10px;
+    bottom: 10px;
+    font-family: monospace;
+    position: absolute;
+    cursor: pointer;
 }
 #click-warning {
     margin-left: auto;

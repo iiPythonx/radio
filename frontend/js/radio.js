@@ -50,6 +50,11 @@ new (class {
         document.querySelector("#download").addEventListener("click", () => {
             window.location.assign(this.audio.src);
         });
+
+        // Handle voteskipping
+        document.querySelector("footer").addEventListener("click", () => {
+            this.websocket.send("voteskip");
+        });
     }
 
     seconds(s) {
@@ -116,7 +121,8 @@ new (class {
                     }
                 }
 
-                document.getElementById("listeners").innerText = `${data.users} ${data.users == 1 && "person" || "people"} listening along.`
+                document.querySelector("#listeners").innerText = `${data.users} ${data.users == 1 && "person" || "people"} listening along.`;
+                document.querySelector("footer").innerText = `voteskip (${data.votes}/${data.users})`;
         }
     }
 });
