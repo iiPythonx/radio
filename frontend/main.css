@@ -60,9 +60,9 @@ progress {
     overflow: hidden;
     border: none;
     border-radius: .25rem;
-    background-color: #202632;
-    color: rgb(1, 114, 173);
 }
+progress::-moz-progress-bar { background: rgb(1, 114, 173); }
+progress::-webkit-progress-value { background: rgb(1, 114, 173); }
 footer {
     left: 10px;
     bottom: 10px;
@@ -85,6 +85,9 @@ section > button {
 header {
     top: 10px;
     left: 10px;
+    gap: 10px;
+    display: flex;
+    width: calc(100% - 20px);
     position: absolute;
 }
 header > a {

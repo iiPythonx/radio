@@ -17,12 +17,12 @@ new (class {
                 this.update_pushed = false;
     
             } catch (e) {
-                document.querySelector("span:first-child").innerText = "Click anywhere.";
+                document.querySelector("#click-warning").innerText = "Click anywhere.";
                 document.addEventListener("click", () => {
                     if (!this.audio.paused) return;
                     this.audio.play();
                     this.force_sync = true;
-                    if (document.querySelector("footer").children.length === 2) document.querySelector("span:first-child").remove();
+                    if (document.querySelector("#click-warning")) document.querySelector("#click-warning").remove();
                 });
             }
         });
@@ -103,15 +103,15 @@ new (class {
 
                 this.force_sync = false;
                 if (!this.audio.paused) {
-                    document.querySelector("footer span:last-child").className =
+                    document.querySelector("#lag").className =
                         lag >= 250 ? "red" :
                         lag >= 150 ? "yellow" :
                         "green";
 
                     if (this.pings <= 5) {
-                        document.querySelector("footer span:last-child").innerText = `Connected (${lag}ms)`;
+                        document.querySelector("#lag").innerText = `Connected (${lag}ms)`;
                     } else {
-                        document.querySelector("footer span:last-child").innerText =
+                        document.querySelector("#lag").innerText =
                             `Connected (${lag}ms; Lowest: ${this.lowest}ms, Highest: ${this.highest}ms, Avg: ${(this.total / this.pings).toFixed(2)}ms)`;
                     }
                 }
