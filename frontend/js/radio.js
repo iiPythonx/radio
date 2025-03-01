@@ -46,11 +46,7 @@ new (class {
 
         // Handle constant & connecting download button
         this.should_sync = true;
-
-        this.total = 0;
-        this.pings = 0;
-        this.lowest = 10000;
-        this.highest = -50000;
+        this.total = 0, this.pings = 0, this.lowest = 0, this.lowest = Infinity, this.highest = -Infinity;
         document.querySelector("#download").addEventListener("click", () => {
             window.location.assign(this.audio.src);
         });
@@ -90,16 +86,10 @@ new (class {
                 const lag = Math.round((data.time - this.audio.currentTime) * 1000);
 
                 this.pings += 1;
-
                 if (this.pings >= 5) {
                     this.total += lag;
-
-                    if (lag < this.lowest) {
-                        this.lowest = lag;
-                    }
-                    if (lag > this.highest) {
-                        this.highest = lag;
-                    }
+                    if (lag < this.lowest) { this.lowest = lag; }
+                    if (lag > this.highest) { this.highest = lag; }
                 }
 
                 if ((lag > 250 || this.force_sync) && this.should_sync) {
@@ -110,8 +100,8 @@ new (class {
                         this.should_sync = false;
                     }
                 };
-                this.force_sync = false;
 
+                this.force_sync = false;
                 if (!this.audio.paused) {
                     document.querySelector("footer span:last-child").className =
                         lag >= 250 ? "red" :
@@ -120,9 +110,10 @@ new (class {
 
                     if (this.pings <= 5) {
                         document.querySelector("footer span:last-child").innerText = `Connected (${lag}ms)`;
+                    } else {
+                        document.querySelector("footer span:last-child").innerText =
+                            `Connected (${lag}ms; Lowest: ${this.lowest}ms, Highest: ${this.highest}ms, Avg: ${(this.total / this.pings).toFixed(2)}ms)`;
                     }
-                    document.querySelector("footer span:last-child").innerText =
-                        `Connected (${lag}ms; Lowest: ${this.lowest}ms, Highest: ${this.highest}ms, Avg: ${(this.total / this.pings).toFixed(2)}ms)`;
                 }
         }
     }
