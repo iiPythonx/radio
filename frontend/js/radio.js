@@ -112,7 +112,7 @@ new (class {
                         document.querySelector("#lag").innerText = `Connected (${lag}ms)`;
                     } else {
                         document.querySelector("#lag").innerText =
-                            `Connected (${lag}ms; Lowest: ${this.lowest}ms, Highest: ${this.highest}ms, Avg: ${(this.total / this.pings).toFixed(2)}ms)`;
+                            `Connected (${lag}ms; Lowest: ${this.lowest}ms, Highest: ${this.highest}ms, Avg: ${Math.round(this.total / this.pings)}ms)`;
                     }
                 }
 

@@ -97,6 +97,9 @@ header > a {
 header > a:hover {
     text-decoration: underline dotted;
 }
+#click-warning {
+    margin-left: auto;
+}
 #visualizer {
     opacity: 0.2;
     height: 200px;
