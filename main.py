@@ -38,11 +38,11 @@ async def stream_task(app: FastAPI) -> None:
 
         print("Now playing:", current_song.name)
         for client in app.state.clients:
-            await send_current(app, client)
+            await client.send_json({"type": "update", "data": app.state.current_song})
 
         for _ in range(round(audio.duration_seconds)):
             for client in app.state.clients:
-                await send_current(app, client)
+                await client.send_json({"type": "clock", "data": {"time": round(time.time()) - app.state.start}})
 
             await asyncio.sleep(1)
 
@@ -65,7 +65,7 @@ async def stream_endpoint(websocket: WebSocket) -> None:
     await websocket.accept()
     app.state.clients.add(websocket)
     try:
-        await send_current(app, websocket)
+        await websocket.send_json({"type": "update", "data": app.state.current_song})
         while True:
             await websocket.receive_text()
 
