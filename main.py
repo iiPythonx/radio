@@ -18,6 +18,7 @@ MUSIC_LOCATION = Path(os.getenv("MUSICDIR") or (Path.cwd() / "music"))
 
 # Setup file indexing
 FILES = []
+print("\033[34mRADIO:\033[0m\tBeginning to index files...")
 for file in MUSIC_LOCATION.rglob("*"):
     if file.suffix not in [".mp3", ".wav", ".flac"]:
         continue
@@ -28,13 +29,15 @@ for file in MUSIC_LOCATION.rglob("*"):
             title, artist = audio.get("TIT2"), audio.get("TPE1")  # type: ignore
 
         case ".flac" | ".wav":
-            title, artist = audio["TITLE"], audio["ARTIST"]  # type: ignore
+            title, artist = audio["TITLE"][0], audio["ARTIST"][0]  # type: ignore
 
         case _:
             exit(f"Hit an unsupported file: {file}")
 
     title = f"{artist} - {title}" if all((title, artist)) else file.with_suffix("").name
     FILES.append((file, audio, title))
+
+print(f"\033[34mRADIO:\033[0m\tIndex complete! {len(FILES)} song(s) present")
 
 # Handle streaming
 async def stream_task(app: FastAPI) -> None:
