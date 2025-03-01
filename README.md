@@ -3,6 +3,14 @@
 A next generation web radio project.
 
 
+### Environment
+
+```sh
+uv venv
+source .venv/bin/activate
+uv pip install -e .
+```
+
 ### Running
 
 ```sh
