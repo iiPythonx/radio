@@ -88,7 +88,7 @@ new (class {
                 break;
 
             case "heartbeat":
-                const lag = Math.round((data.time - this.audio.currentTime) * 1000);
+                const lag = Math.abs(Math.round((data.time - this.audio.currentTime) * 1000));
 
                 this.pings += 1;
                 if (this.pings >= 5) {
