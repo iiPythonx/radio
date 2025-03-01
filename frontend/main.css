@@ -99,14 +99,14 @@ header > a:hover {
     height: 200px;
     width: 100%;
     bottom: 0px;
+    position: absolute;
+}
 .green {
-    color: rgb(23, 242, 70)
+    color: rgb(23, 242, 70);
 }
 .yellow {
-    color: yellow
+    color: yellow;
 }
 .red {
-    color: rgb(255, 66, 66)
-}
-    position: absolute;
+    color: rgb(255, 66, 66);
 }
