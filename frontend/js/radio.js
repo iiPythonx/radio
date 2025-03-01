@@ -82,7 +82,7 @@ new (class {
                 document.querySelector("#song-name").innerText = data.name;
                 break;
 
-            case "clock":
+            case "heartbeat":
                 const lag = Math.round((data.time - this.audio.currentTime) * 1000);
 
                 this.pings += 1;
@@ -115,6 +115,8 @@ new (class {
                             `Connected (${lag}ms; Lowest: ${this.lowest}ms, Highest: ${this.highest}ms, Avg: ${(this.total / this.pings).toFixed(2)}ms)`;
                     }
                 }
+
+                document.getElementById("listeners").innerText = `${data.users} ${data.users == 1 && "person" || "people"} listening along.`
         }
     }
 });
