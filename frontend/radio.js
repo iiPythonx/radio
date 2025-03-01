@@ -6,8 +6,6 @@ new (class {
                 const data = JSON.parse(e.data);
                 this.receive(data);
             });
-            this.sync_start = Date.now();
-            this.websocket.send("");
         });
 
         this.audio = new Audio();
@@ -21,7 +19,7 @@ new (class {
                     if (!this.audio.paused) return;
                     this.audio.play();
                     this.force_sync = true;
-                    document.querySelector("span:first-child").remove();
+                    if (document.querySelector("footer").children.length === 2) document.querySelector("span:first-child").remove();
                 });
             }
         });

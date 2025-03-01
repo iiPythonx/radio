@@ -81,3 +81,16 @@ section > button {
     padding: 10px 20px;
     aspect-ratio: 0;
 }
+header {
+    top: 10px;
+    left: 10px;
+    position: absolute;
+}
+header > a {
+    font-family: monospace;
+    text-decoration: none;
+}
+header > a:hover {
+    text-decoration: underline dotted;
+}
+    

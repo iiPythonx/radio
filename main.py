@@ -20,7 +20,7 @@ MUSIC_LOCATION = Path(os.getenv("MUSICDIR") or (Path.cwd() / "music"))
 async def stream_task(app: FastAPI) -> None:
     last_song = None
     while True:
-        current_song = random.choice([file for file in MUSIC_LOCATION.iterdir() if file.suffix in [".mp3", ".flac", ".wav"]])
+        current_song = random.choice([file for file in MUSIC_LOCATION.rglob("*") if file.suffix in [".mp3", ".flac", ".wav"]])
         if current_song == last_song:
             continue
 
@@ -34,7 +34,6 @@ async def stream_task(app: FastAPI) -> None:
             "length": audio.duration_seconds
         }
 
-        print("Now playing:", current_song.name)
         for client in app.state.clients:
             await client.send_json({"type": "update", "data": app.state.current_song})
 
