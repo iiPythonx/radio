@@ -9,35 +9,54 @@ import asyncio
 from pathlib import Path
 from contextlib import asynccontextmanager
 
-from pydub import AudioSegment
+from mutagen._file import File
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 from fastapi.staticfiles import StaticFiles
 
 # Constants
 MUSIC_LOCATION = Path(os.getenv("MUSICDIR") or (Path.cwd() / "music"))
 
+# Setup file indexing
+FILES = []
+for file in MUSIC_LOCATION.rglob("*"):
+    if file.suffix not in [".mp3", ".wav", ".flac"]:
+        continue
+
+    audio = File(file)
+    match file.suffix:
+        case ".mp3":
+            title, artist = audio.get("TIT2"), audio.get("TPE1")  # type: ignore
+
+        case ".flac" | ".wav":
+            title, artist = audio["TITLE"], audio["ARTIST"]  # type: ignore
+
+        case _:
+            exit(f"Hit an unsupported file: {file}")
+
+    title = f"{artist} - {title}" if all((title, artist)) else file.with_suffix("").name
+    FILES.append((file, audio, title))
+
 # Handle streaming
 async def stream_task(app: FastAPI) -> None:
     last_song = None
     while True:
-        current_song = random.choice([file for file in MUSIC_LOCATION.rglob("*") if file.suffix in [".mp3", ".flac", ".wav"]])
-        if current_song == last_song:
+        (path, audio, title) = random.choice(FILES)
+        if path == last_song:
             continue
 
-        last_song = current_song
+        last_song = path
 
-        audio = AudioSegment.from_file(current_song)
         app.state.start = round(time.time())
         app.state.current_song = {
-            "file": str(current_song.relative_to(MUSIC_LOCATION)),
-            "name": current_song.with_suffix("").name,
-            "length": audio.duration_seconds
+            "file": str(path.relative_to(MUSIC_LOCATION)),
+            "name": title,
+            "length": audio.info.length
         }
 
         for client in app.state.clients:
             await client.send_json({"type": "update", "data": app.state.current_song})
 
-        for _ in range(round(audio.duration_seconds)):
+        for _ in range(round(audio.info.length)):
             for client in app.state.clients:
                 await client.send_json({"type": "clock", "data": {"time": round(time.time()) - app.state.start}})
 
