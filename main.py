@@ -61,7 +61,11 @@ async def stream_task(app: FastAPI) -> None:
 
         for _ in range(round(audio.info.length)):
             for client in app.state.clients:
-                await client.send_json({"type": "clock", "data": {"time": round(time.time()) - app.state.start}})
+                await client.send_json({"type": "heartbeat", "data": {
+                    "time": round(time.time()) - app.state.start, 
+                    "users": len(app.state.clients)
+                    }
+                })
 
             await asyncio.sleep(1)
 
