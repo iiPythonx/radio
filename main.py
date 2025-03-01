@@ -2,6 +2,7 @@
 # A next-generation web radio setup.
 
 # Modules
+import os
 import time
 import random
 import asyncio
@@ -13,7 +14,7 @@ from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 from fastapi.staticfiles import StaticFiles
 
 # Constants
-MUSIC_LOCATION = Path("/home/benjamin/Downloads/Lofi")
+MUSIC_LOCATION = Path(os.getenv("MUSICDIR") or (Path.cwd() / "music"))
 
 # Handle streaming
 async def send_current(app: FastAPI, client: WebSocket) -> None:
