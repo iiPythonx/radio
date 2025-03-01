@@ -17,9 +17,6 @@ from fastapi.staticfiles import StaticFiles
 MUSIC_LOCATION = Path(os.getenv("MUSICDIR") or (Path.cwd() / "music"))
 
 # Handle streaming
-async def send_current(app: FastAPI, client: WebSocket) -> None:
-    await client.send_json(app.state.current_song | {"position": round(time.time()) - app.state.start})
-
 async def stream_task(app: FastAPI) -> None:
     last_song = None
     while True:
