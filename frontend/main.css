@@ -93,4 +93,13 @@ header > a {
 header > a:hover {
     text-decoration: underline dotted;
 }
+.green {
+    color: rgb(23, 242, 70)
+}
+.yellow {
+    color: yellow
+}
+.red {
+    color: rgb(255, 66, 66)
+}
     

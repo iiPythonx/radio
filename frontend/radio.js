@@ -12,7 +12,7 @@ new (class {
         this.audio.addEventListener("canplay", async () => {
             try {
                 if (this.audio.paused) await this.audio.play();
-    
+
             } catch (e) {
                 document.querySelector("span:first-child").innerText = "Click anywhere.";
                 document.addEventListener("click", () => {
@@ -25,6 +25,11 @@ new (class {
         });
 
         this.should_sync = true;
+
+        this.total = 0;
+        this.pings = 0;
+        this.lowest = 10000;
+        this.highest = -50000;
     }
 
     seconds(s) {
@@ -40,6 +45,7 @@ new (class {
 
     receive(payload) {
         const { type, data } = payload;
+
         switch (type) {
             case "update":
                 this.audio.src = `/audio/${data.file}`;
@@ -50,7 +56,7 @@ new (class {
 
                 this.update_progress(data.length);
                 this.interval = setInterval(() => this.update_progress(data.length), 100);
-                
+
                 document.querySelector("#song-name").innerText = data.name;
 
                 // Hook up download button
@@ -61,6 +67,20 @@ new (class {
 
             case "clock":
                 const lag = Math.round((data.time - this.audio.currentTime) * 1000);
+
+                this.pings += 1;
+
+                if (this.pings >= 5) {
+                    this.total += lag;
+
+                    if (lag < this.lowest) {
+                        this.lowest = lag;
+                    }
+                    if (lag > this.highest) {
+                        this.highest = lag;
+                    }
+                }
+
                 if ((lag > 250 || this.force_sync) && this.should_sync) {
                     this.audio.currentTime = data.time;
                     this.sync_attempts++;
@@ -70,7 +90,21 @@ new (class {
                     }
                 };
                 this.force_sync = false;
-                if (!this.audio.paused) document.querySelector("footer span:last-child").innerText = `${lag}ms`;
+
+                if (!this.audio.paused) {
+                    document.querySelector("footer span:last-child").className =
+                        lag >= 250 ? "red" :
+                        lag >= 150 ? "yellow" :
+                        "green";
+
+
+
+                    if (this.pings <= 5) {
+                        document.querySelector("footer span:last-child").innerText = `Connected (${lag}ms)`;
+                    }
+                    document.querySelector("footer span:last-child").innerText =
+                        `Connected (${lag}ms; Lowest: ${this.lowest}ms, Highest: ${this.highest}ms, Avg: ${(this.total / this.pings).toFixed(3)}ms)`;
+                }
         }
     }
 });
