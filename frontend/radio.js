@@ -10,9 +10,6 @@ new (class {
             this.sync_start = Date.now();
             this.websocket.send("");
         });
-
-        // Handle lag calculations
-        // this.lag = [];
     }
 
     seconds(s) {
@@ -27,30 +24,36 @@ new (class {
     }
 
     interact() {
-        document.querySelector("dialog").open = true;
-        document.querySelector("dialog button").addEventListener("click", () => {
+        document.querySelector("span:first-child").innerText = "Click anywhere to bypass autoplay.";
+        document.addEventListener("click", () => {
             this.audio.play();
-            document.querySelector("dialog").open = false;
+            document.querySelector("span:first-child").remove();
         });
+    }
+
+    sync(position) {
+        if (this.audio.paused) return;
+        this.audio.currentTime = position;
+        console.log("Resynced");
     }
 
     async now_playing(data) {
         if (this.song && data.file === this.song.file) {
-            const latency = (data.position - this.audio.currentTime) * 1000;
-            // this.lag.push(latency);
-
-            if (latency > 1000) this.audio.currentTime = data.position;
-            document.querySelector("footer").innerText = `${Math.round(latency)}ms`;
+            let latency = Math.round((data.position - this.audio.currentTime) * 1000);
+            console.log(data.position, this.audio.currentTime, this.audio.paused);
+            if (latency > 500) this.sync(data.position);
+            if (!this.audio.paused) document.querySelector("footer span:last-child").innerText = `${latency}ms`;
             return;
         }
+
         this.audio.src = `/audio/${data.file}`;
         this.audio.currentTime = data.position;
 
         // This sucks.
         try {
-            if (this.audio.paused) await this.audio.play();
+            if (this.audio.paused && (data.file === this.song.file) || !this.song) await this.audio.play();
             document.querySelector("dialog").open = false;
-        } catch { this.interact(); }
+        } catch { if (!this.song || (this.song && data.file === this.song.file)) this.interact(); }
 
         // Hook up download button
         document.querySelector("#download").addEventListener("click", () => {

@@ -17,7 +17,7 @@ MUSIC_LOCATION = Path("/home/benjamin/Downloads/Lofi")
 
 # Handle streaming
 async def send_current(app: FastAPI, client: WebSocket) -> None:
-    await client.send_json(app.state.current_song | {"position": time.time() - app.state.start})
+    await client.send_json(app.state.current_song | {"position": round(time.time()) - app.state.start})
 
 async def stream_task(app: FastAPI) -> None:
     last_song = None
@@ -29,7 +29,7 @@ async def stream_task(app: FastAPI) -> None:
         last_song = current_song
 
         audio = AudioSegment.from_file(current_song)
-        app.state.start = time.time()
+        app.state.start = round(time.time())
         app.state.current_song = {
             "file": str(current_song.relative_to(MUSIC_LOCATION)),
             "name": current_song.with_suffix("").name,
