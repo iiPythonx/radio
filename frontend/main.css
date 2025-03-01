@@ -7,6 +7,7 @@ body, html {
     height: 100%;
 }
 body {
+    overflow: hidden;
     gap: 15px;
     display: flex;
     align-items: center;
@@ -93,6 +94,11 @@ header > a {
 header > a:hover {
     text-decoration: underline dotted;
 }
+#visualizer {
+    opacity: 0.2;
+    height: 200px;
+    width: 100%;
+    bottom: 0px;
 .green {
     color: rgb(23, 242, 70)
 }
@@ -102,4 +108,5 @@ header > a:hover {
 .red {
     color: rgb(255, 66, 66)
 }
-    
+    position: absolute;
+}

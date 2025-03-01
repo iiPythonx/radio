@@ -8,11 +8,14 @@ new (class {
             });
         });
 
+        // Setup audio instance
         this.audio = new Audio();
         this.audio.addEventListener("canplay", async () => {
             try {
+                if (!this.update_pushed) return;
                 if (this.audio.paused) await this.audio.play();
-
+                this.update_pushed = false;
+    
             } catch (e) {
                 document.querySelector("span:first-child").innerText = "Click anywhere.";
                 document.addEventListener("click", () => {
@@ -24,12 +27,33 @@ new (class {
             }
         });
 
+        // Setup audioMotion.js
+        new AudioMotionAnalyzer(
+            document.querySelector("#visualizer"),
+            {
+                source: this.audio,
+                ansiBands: true,
+                connectSpeakers: true,
+                mode: 4,
+                gradient: "steelblue",
+                overlay: true,
+                showBgColor: false,
+                showPeaks: false,
+                showScaleX: false,
+                smoothing: 0.8
+            }
+        );
+
+        // Handle constant & connecting download button
         this.should_sync = true;
 
         this.total = 0;
         this.pings = 0;
         this.lowest = 10000;
         this.highest = -50000;
+        document.querySelector("#download").addEventListener("click", () => {
+            window.location.assign(this.audio.src);
+        });
     }
 
     seconds(s) {
@@ -51,6 +75,8 @@ new (class {
                 this.audio.src = `/audio/${data.file}`;
                 this.audio.load();
 
+                this.update_pushed = true;
+
                 // Update UI
                 if (this.interval) clearInterval(this.interval);
 
@@ -58,12 +84,7 @@ new (class {
                 this.interval = setInterval(() => this.update_progress(data.length), 100);
 
                 document.querySelector("#song-name").innerText = data.name;
-
-                // Hook up download button
-                document.querySelector("#download").addEventListener("click", () => {
-                    window.location.assign(this.audio.src);
-                });
-                return;
+                break;
 
             case "clock":
                 const lag = Math.round((data.time - this.audio.currentTime) * 1000);
