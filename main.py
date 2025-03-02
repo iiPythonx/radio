@@ -94,7 +94,7 @@ async def stream_endpoint(websocket: WebSocket) -> None:
     await websocket.accept()
 
     # Push onto client stack
-    ip, enable_voting = websocket.headers.get("CF-Connecting-IP", ip), True  # type: ignore
+    ip, enable_voting = websocket.headers.get("CF-Connecting-IP", websocket.client.host), True  # type: ignore
     if next(filter(lambda x: x[1] == ip, app.state.clients), None):
         enable_voting = False
 
