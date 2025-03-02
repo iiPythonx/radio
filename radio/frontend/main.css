@@ -109,6 +109,26 @@ footer:hover {
     bottom: 0px;
     position: absolute;
 }
+#progress {
+    flex: 1;
+}
+input[type = "range"] {
+    -webkit-appearance: none;
+    background: gray;
+    height: 8px;
+    border-radius: 10px;
+}
+
+input[type = "range"]::-webkit-slider-thumb,
+input[type = "range"]::-moz-range-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 15px;
+    height: 15px;
+    border-radius: 100%;
+    background: rgb(1, 127, 192);
+    cursor: pointer;
+}
 .green {
     color: rgb(23, 242, 70);
 }

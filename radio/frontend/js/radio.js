@@ -28,6 +28,11 @@ new (class {
             }
         });
 
+        // Setup volume control
+        document.querySelector(`input[type = "range"]`).addEventListener("input", (e) => {
+            this.audio.volume = e.currentTarget.value / 100;
+        });
+
         // Setup audioMotion.js
         new AudioMotionAnalyzer(
             document.querySelector("#visualizer"),
