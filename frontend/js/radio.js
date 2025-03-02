@@ -54,6 +54,7 @@ new (class {
         // Handle voteskipping
         document.querySelector("footer").addEventListener("click", () => {
             this.websocket.send("voteskip");
+            this.voted = !this.voted;
         });
     }
 
@@ -122,7 +123,8 @@ new (class {
                 }
 
                 document.querySelector("#listeners").innerText = `${data.users} ${data.users == 1 && "person" || "people"} listening along.`;
-                document.querySelector("footer").innerText = `voteskip (${data.votes}/${data.users})`;
+                document.querySelector("footer").innerText = `${this.voted ? "voted" : "voteskip"} (${data.votes}/${Math.ceil(data.users / 2)})`;
+                if (data.votes === 0) this.voted = false;
         }
     }
 });

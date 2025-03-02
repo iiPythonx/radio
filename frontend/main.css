@@ -91,6 +91,10 @@ footer {
     font-family: monospace;
     position: absolute;
     cursor: pointer;
+    user-select: none;
+}
+footer:hover {
+    text-decoration: underline dotted;
 }
 #click-warning {
     margin-left: auto;

@@ -60,14 +60,15 @@ async def stream_task(app: FastAPI) -> None:
             await client.send_json({"type": "update", "data": app.state.current_song})
 
         for _ in range(round(audio.info.length)):
-            for client in app.state.clients:
+            client_count = len(set(ip for _, ip in app.state.clients))
+            for client, _ in app.state.clients:
                 await client.send_json({"type": "heartbeat", "data": {
                     "time": round(time.time()) - app.state.start, 
-                    "users": len(app.state.clients),
+                    "users": client_count,
                     "votes": len(app.state.voters)
                 }})
 
-            if app.state.clients and (len(app.state.voters) >= len(app.state.clients) / 2):
+            if app.state.clients and (len(app.state.voters) >= client_count / 2):
                 app.state.voters = set()
                 break
 
@@ -91,15 +92,27 @@ app.state.voters = set()
 @app.websocket("/stream")
 async def stream_endpoint(websocket: WebSocket) -> None:
     await websocket.accept()
-    app.state.clients.add(websocket)
+
+    # Push onto client stack
+    ip, enable_voting = websocket.headers.get("CF-Connecting-IP", websocket.client.host), True  # type: ignore
+    if next(filter(lambda x: x[1] == ip, app.state.clients), None):
+        enable_voting = False
+
+    app.state.clients.add((websocket, ip))
+
+    # Handle lifecycle
     try:
         await websocket.send_json({"type": "update", "data": app.state.current_song})
         while True:
-            if await websocket.receive_text() == "voteskip" and websocket not in app.state.voters:
-                app.state.voters.add(websocket)
+            if await websocket.receive_text() == "voteskip" and enable_voting:
+                if websocket in app.state.voters:
+                    app.state.voters.remove(websocket)
+
+                else:
+                    app.state.voters.add(websocket)
 
     except WebSocketDisconnect:
-        app.state.clients.remove(websocket)
+        app.state.clients.remove((websocket, ip))
 
 # Handle frontend
 app.mount("/", StaticFiles(directory = Path("frontend"), html = True))
