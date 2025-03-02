@@ -38,7 +38,7 @@ class AppState:
 
     @staticmethod
     def time() -> int:
-        return round(time.time())
+        return round(time.time() * 1000)
 
     async def loop(self) -> None:
         last_track = None
@@ -63,7 +63,7 @@ class AppState:
                 await client.send_json({"type": "update", "data": self.current_track})
 
             def generate_status(elapsed: int, clients: int, votes: int) -> str:
-                return f"Next song in {round(audio.info.length - elapsed)} second(s). Clients: {clients}; Skip votes: {votes}"
+                return f"Next song in {round(audio.info.length - (elapsed / 1000))} second(s). Clients: {clients}; Skip votes: {votes}"
 
             with console.status(generate_status(0, 0, 0)) as status:
                 for _ in range(round(audio.info.length)):

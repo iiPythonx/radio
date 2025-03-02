@@ -101,7 +101,8 @@ new (class {
                 break;
 
             case "heartbeat":
-                const lag = Math.abs(Math.round((data.time - this.audio.currentTime) * 1000));
+                const time = data.time / 1000;
+                const lag = Math.abs(Math.round((time - this.audio.currentTime) * 1000));
 
                 this.pings += 1;
                 if (this.pings >= 5) {
@@ -111,7 +112,7 @@ new (class {
                 }
 
                 if ((lag > 250 || this.force_sync) && this.should_sync) {
-                    this.audio.currentTime = data.time;
+                    this.audio.currentTime = time;
                     this.sync_attempts++;
                     if (this.sync_attempts > 4) {
                         alert("Failed to sync 4+ times, check your connection.");
