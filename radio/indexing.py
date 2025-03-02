@@ -18,7 +18,7 @@ def index_files() -> list[tuple[Path, Any, str]]:
     files = []
     with console.status("Indexing music...") as status:
         for file in MUSIC_LOCATION.rglob("*"):
-            if file.suffix not in [".mp3", ".wav", ".flac"]:
+            if file.suffix not in [".mp3", ".wav", ".flac", ".opus", ".m4a"]:
                 continue
 
             audio = File(file)
@@ -28,6 +28,9 @@ def index_files() -> list[tuple[Path, Any, str]]:
 
                 case ".flac" | ".wav":
                     title, artist = audio["TITLE"][0], audio["ARTIST"][0]  # type: ignore
+
+                case ".opus" | ".m4a":
+                    continue  # Fallback to filename for now
 
                 case _:
                     exit(f"radio: hit an unsupported file: {file}")
