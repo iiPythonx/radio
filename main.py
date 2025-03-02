@@ -56,7 +56,7 @@ async def stream_task(app: FastAPI) -> None:
             "length": audio.info.length
         }
 
-        for client in app.state.clients:
+        for client, _ in app.state.clients:
             await client.send_json({"type": "update", "data": app.state.current_song})
 
         for _ in range(round(audio.info.length)):
@@ -94,7 +94,7 @@ async def stream_endpoint(websocket: WebSocket) -> None:
     await websocket.accept()
 
     # Push onto client stack
-    ip, enable_voting = websocket.headers.get("CF-Connecting-IP", websocket.client.host), True  # type: ignore
+    ip, enable_voting = websocket.headers.get("CF-Connecting-IP", ip), True  # type: ignore
     if next(filter(lambda x: x[1] == ip, app.state.clients), None):
         enable_voting = False
 
