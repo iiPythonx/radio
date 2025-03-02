@@ -113,6 +113,8 @@ async def stream_endpoint(websocket: WebSocket) -> None:
 
     except WebSocketDisconnect:
         app.state.clients.remove((websocket, ip))
+        if websocket in app.state.voters:
+            app.state.voters.remove(websocket)
 
 # Handle frontend
 app.mount("/", StaticFiles(directory = Path("frontend"), html = True))
