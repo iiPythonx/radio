@@ -96,6 +96,9 @@ footer {
 footer:hover {
     text-decoration: underline dotted;
 }
+#lag {
+    cursor: pointer;
+}
 #click-warning {
     margin-left: auto;
 }

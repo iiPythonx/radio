@@ -17,12 +17,13 @@ new (class {
                 this.update_pushed = false;
     
             } catch (e) {
-                document.querySelector("#click-warning").innerText = "Click anywhere.";
+                const warning = document.querySelector("#click-warning")
+                warning.innerText = "Click anywhere.";
                 document.addEventListener("click", () => {
                     if (!this.audio.paused) return;
                     this.audio.play();
                     this.force_sync = true;
-                    if (document.querySelector("#click-warning")) document.querySelector("#click-warning").remove();
+                    warning.innerText = "";
                 });
             }
         });
@@ -46,7 +47,7 @@ new (class {
 
         // Handle constant & connecting download button
         this.should_sync = true;
-        this.total = 0, this.pings = 0, this.lowest = 0, this.lowest = Infinity, this.highest = -Infinity;
+        this.reset_sync();
         document.querySelector("#download").addEventListener("click", () => {
             window.location.assign(this.audio.src);
         });
@@ -56,6 +57,17 @@ new (class {
             this.websocket.send("voteskip");
             this.voted = !this.voted;
         });
+
+        // Handle force resyncing
+        document.querySelector("#lag").addEventListener("click", (e) => {
+            e.currentTarget.innerText = "Syncing";
+            this.force_sync = true;
+            this.reset_sync();
+        });
+    }
+
+    reset_sync() {
+        this.total = 0, this.pings = 0, this.lowest = 0, this.lowest = Infinity, this.highest = -Infinity;
     }
 
     seconds(s) {
