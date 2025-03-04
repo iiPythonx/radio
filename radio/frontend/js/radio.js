@@ -124,7 +124,6 @@ new (class {
             case "update":
                 this.audio.src = `/audio/${data.file}`;
                 this.audio.load();
-                this.audio.currentTime = 0;
 
                 this.update_pushed = true;
 
@@ -135,6 +134,12 @@ new (class {
                 this.interval = setInterval(() => this.update_progress(data.length), 100);
 
                 document.querySelector("#song-name").innerText = data.name;
+                break;
+
+            case "preload":
+                const preload_audio = new Audio(`/audio/${data.file}`);
+                preload_audio.preload = "auto";
+                preload_audio.load();
                 break;
 
             case "heartbeat":
