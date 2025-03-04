@@ -34,6 +34,8 @@ class Overrides:
 class AppState:
     def __init__(self) -> None:
         self.current_track: dict | None = None
+        self.start_time: int | None = None
+
         self.overrides = Overrides()
 
         # Generate box
@@ -51,61 +53,58 @@ class AppState:
         # Handle unique data
         self.clients: set[Client] = set()
 
+    @staticmethod
+    def time() -> int:
+        return int(time.time() * 1000)
+
     async def loop(self) -> None:
-        track, last_track = None, None
+        last_track = None, None
         while True:
-            if track != last_track and track:
-                (path, audio, name) = track
-                if not self.overrides.track:
-                    last_track = track
+            (path, audio, name) = self.overrides.track or random.choice(self.tracks)
+            if path == last_track:
+                continue
 
-                self.overrides.reset()
+            if not self.overrides.track:
+                last_track = path
 
-                # Calculate new data
-                self.current_track = {"file": str(path.relative_to(MUSIC_LOCATION)), "name": name, "length": audio.info.length}
+            self.overrides.reset()
 
-                # Log to console
-                il.create_log(f"\033[33m\u26A1 New Song [{name}]")
-                il.create_log(f"\033[90m   │   \033[90m{path}")
-                il.create_log(f"\033[90m   └→  \033[90mNow Playing\t\033[33m[{audio.info.length:.1f} second(s)]\033[0m")
+            # Calculate new data
+            duration = int(audio.info.length * 1000)
+            self.current_track = {"file": str(path.relative_to(MUSIC_LOCATION)), "name": name, "length": duration}
 
-                # Send track update
-                for client in self.clients:
-                    await client.send_json({"type": "update", "data": self.current_track})
+            # Log to console
+            il.create_log(f"\033[33m\u26A1 New Song [{name}]")
+            il.create_log(f"\033[90m   │   \033[90m{path}")
+            il.create_log(f"\033[90m   └→  \033[90mNow Playing\t\033[33m[{(duration / 1000):.1f} second(s)]\033[0m")
 
-                def generate_status(elapsed: int, clients: int, votes: int) -> str:
-                    return f"Next song in {round(audio.info.length - (elapsed / 1000))} second(s). Clients: {clients}; Skip votes: {votes}"
+            # Send track update
+            self.start_time = self.time()
+            for client in self.clients:
+                await client.send_json({"type": "update", "data": self.current_track})
 
-                with console.status(generate_status(0, 0, 0)) as status:
-                    duration = round(audio.info.length)
-                    for elapsed in range(duration):
-                        if elapsed == duration - 5:
-                            track = self.overrides.track or random.choice(self.tracks)
-                            for client in self.clients:
-                                await client.send_json({"type": "preload", "data": {"file": str(track[0].relative_to(MUSIC_LOCATION))}})
+            def generate_status(elapsed: int, clients: int, votes: int) -> str:
+                return f"Next song in {round(audio.info.length - (elapsed / 1000))} second(s). Clients: {clients}; Skip votes: {votes}"
 
-                        client_count = len(set(client.ip for client in self.clients))
-                        vote_count = len([client for client in self.clients if client.voted])
-
-                        # Send heartbeat
-                        if (self.clients and (vote_count >= client_count * (self.overrides.ratio / 100))) or self.overrides.skip:
-                            for client in self.clients:
-                                client.voted = False
-
-                            break
-
-                        clock = round(time.time() * 1000)
+            cc, vc = 0, 0
+            with console.status(generate_status(0, 0, 0)) as status:
+                for elapsed in range(int(duration / 1000)):
+                    client_count = len(set(client.ip for client in self.clients))
+                    vote_count = len([client for client in self.clients if client.voted])
+                    if (cc != client_count) or (vc != vote_count):
                         for client in self.clients:
                             await client.send_json({"type": "heartbeat", "data": {
-                                "time": elapsed, "users": client_count, "votes": vote_count,
-                                "vote_ratio": self.overrides.ratio, "clock": clock
+                                "user_count": client_count, "vote_count": vote_count, "vote_ratio": self.overrides.ratio
                             }})
 
-                        await asyncio.sleep(1)
-                        status.update(generate_status(elapsed, client_count, vote_count))
+                    if (self.clients and (vote_count >= client_count * (self.overrides.ratio / 100))) or self.overrides.skip:
+                        for client in self.clients:
+                            client.voted = False
 
-            if last_track == track:
-                track = self.overrides.track or random.choice(self.tracks)
+                        break
+
+                    await asyncio.sleep(1)
+                    status.update(generate_status(elapsed, client_count, vote_count))
 
 # Handle background tasks
 radio = AppState()
@@ -138,6 +137,9 @@ async def stream_endpoint(websocket: WebSocket) -> None:
         while True:
             response = await websocket.receive_json()
             match response:
+                case {"type": "position"} if radio.start_time:
+                    await websocket.send_json({"type": "position", "data": {"elapsed": radio.time() - radio.start_time}})
+
                 case {"type": "voteskip"} if enable_voting:
                     client.voted = not client.voted
 
