@@ -99,7 +99,7 @@ new (class {
             if (this.sync_interval) clearInterval(this.interval);
 
             this.sync();
-            this.sync_interval = setInterval(() => this.sync(), 1000);
+            this.sync_interval = setInterval(() => this.sync(), 5000);
         });
         this.websocket.addEventListener("close", () => {
             document.querySelector("#lag").className = "red";

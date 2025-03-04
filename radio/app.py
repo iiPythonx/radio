@@ -97,6 +97,8 @@ class AppState:
                                 "user_count": client_count, "vote_count": vote_count, "vote_ratio": self.overrides.ratio
                             }})
 
+                        cc, vc = client_count, vote_count
+
                     if (self.clients and (vote_count >= client_count * (self.overrides.ratio / 100))) or self.overrides.skip:
                         for client in self.clients:
                             client.voted = False
