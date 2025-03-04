@@ -104,6 +104,7 @@ new (class {
         this.websocket.addEventListener("close", () => {
             document.querySelector("#lag").className = "red";
             document.querySelector("#lag").innerText = "Connection lost";
+            clearInterval(this.sync_interval);
             setTimeout(() => this.connect(), 5000);
         });
         if (this.admin) this.admin.connect(this.websocket);
