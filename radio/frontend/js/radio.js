@@ -1,12 +1,6 @@
 new (class {
     constructor() {
-        this.websocket = new WebSocket(`${location.protocol === "https:" ? "wss" : "ws"}://${location.host}/stream`);
-        this.websocket.addEventListener("open", () => {
-            this.websocket.addEventListener("message", (e) => {
-                const data = JSON.parse(e.data);
-                this.receive(data);
-            });
-        });
+        this.connect();
 
         // Setup audio instance
         this.audio = new Audio();
@@ -52,7 +46,6 @@ new (class {
 
         // Handle constant & connecting download button
         this.should_sync = true;
-        this.reset_sync();
         document.querySelector("#download").addEventListener("click", () => {
             window.location.assign(this.audio.src);
         });
@@ -65,9 +58,26 @@ new (class {
 
         // Handle force resyncing
         document.querySelector("#lag").addEventListener("click", (e) => {
+            if (this.websocket.readyState !== WebSocket.OPEN) return;
             e.currentTarget.innerText = "Syncing";
             this.force_sync = true;
             this.reset_sync();
+        });
+    }
+
+    connect() {
+        this.reset_sync();
+        this.websocket = new WebSocket(`${location.protocol === "https:" ? "wss" : "ws"}://${location.host}/stream`);
+        this.websocket.addEventListener("open", () => {
+            this.websocket.addEventListener("message", (e) => {
+                const data = JSON.parse(e.data);
+                this.receive(data);
+            });
+        });
+        this.websocket.addEventListener("close", () => {
+            document.querySelector("#lag").className = "red";
+            document.querySelector("#lag").innerText = "Connection lost";
+            setTimeout(() => this.connect(), 5000);
         });
     }
 
