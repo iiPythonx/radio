@@ -15,7 +15,7 @@ class Configuration:
         if self._file.is_file():
             self._data = json.loads(self._file.read_text())
 
-        self.supported_keys = ["music-folder", "admin-key"]
+        self.supported_keys = ["music-folder", "admin-password"]
 
     def propagate(self) -> None:
         self._file.write_text(json.dumps(self._data))

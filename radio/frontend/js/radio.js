@@ -60,8 +60,12 @@ new (class {
 
         // Handle voteskipping
         document.querySelector("footer").addEventListener("click", () => {
-            this.websocket.send("voteskip");
+            this.websocket.send(JSON.stringify({ type: "voteskip" }));
             this.voted = !this.voted;
+            document.querySelector("footer").innerText = document.querySelector("footer").innerText.replace(
+                this.voted ? "voteskip" : "voted",
+                this.voted ? "voted": "voteskip"
+            );
         });
 
         // Handle force resyncing
@@ -70,6 +74,15 @@ new (class {
             e.currentTarget.innerText = "Syncing";
             this.force_sync = true;
             this.reset_sync();
+        });
+
+        // Admin interface
+        document.addEventListener("keydown", async (e) => {
+            if (e.key === "/" && e.ctrlKey) {
+                e.preventDefault();
+                if (this.admin) return this.admin.toggle();
+                this.admin = new (await import("/js/admin.js")).AdminInterface(this.websocket);
+            }
         });
     }
 
@@ -87,6 +100,7 @@ new (class {
             document.querySelector("#lag").innerText = "Connection lost";
             setTimeout(() => this.connect(), 5000);
         });
+        if (this.admin) this.admin.connect(this.websocket);
     }
 
     reset_sync() {
@@ -106,7 +120,6 @@ new (class {
 
     receive(payload) {
         const { type, data } = payload;
-
         switch (type) {
             case "update":
                 this.audio.src = `/audio/${data.file}`;
@@ -159,7 +172,7 @@ new (class {
                 }
 
                 document.querySelector("#listeners").innerText = `${data.users} ${data.users == 1 && "person" || "people"} listening along.`;
-                document.querySelector("footer").innerText = `${this.voted ? "voted" : "voteskip"} (${data.votes}/${Math.ceil(data.users / 2)})`;
+                document.querySelector("footer").innerText = `${this.voted ? "voted" : "voteskip"} (${data.votes}/${Math.ceil(data.users * (data.vote_ratio / 100))})`;
                 if (data.votes === 0) this.voted = false;
         }
     }
