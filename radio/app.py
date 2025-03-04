@@ -3,7 +3,6 @@
 
 # Modules
 import json
-import time
 import random
 import asyncio
 from pathlib import Path
@@ -33,9 +32,7 @@ class Overrides:
 
 class AppState:
     def __init__(self) -> None:
-        self.start_time: int | None = None
         self.current_track: dict | None = None
-
         self.overrides = Overrides()
 
         # Generate box
@@ -53,10 +50,6 @@ class AppState:
         # Handle unique data
         self.clients: set[Client] = set()
 
-    @staticmethod
-    def time() -> int:
-        return round(time.time() * 1000)
-
     async def loop(self) -> None:
         last_track = None
         while True:
@@ -70,7 +63,6 @@ class AppState:
             self.overrides.reset()
 
             # Calculate new data
-            self.start_time = self.time()
             self.current_track = {"file": str(path.relative_to(MUSIC_LOCATION)), "name": name, "length": audio.info.length}
 
             # Log to console
@@ -86,12 +78,11 @@ class AppState:
                 return f"Next song in {round(audio.info.length - (elapsed / 1000))} second(s). Clients: {clients}; Skip votes: {votes}"
 
             with console.status(generate_status(0, 0, 0)) as status:
-                for _ in range(round(audio.info.length)):
+                for elapsed in range(round(audio.info.length) - 5):
                     client_count = len(set(client.ip for client in self.clients))
                     vote_count = len([client for client in self.clients if client.voted])
 
                     # Send heartbeat
-                    elapsed = self.time() - self.start_time
                     if (self.clients and (vote_count >= client_count * (self.overrides.ratio / 100))) or self.overrides.skip:
                         for client in self.clients:
                             client.voted = False

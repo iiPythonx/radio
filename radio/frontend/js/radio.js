@@ -124,6 +124,7 @@ new (class {
             case "update":
                 this.audio.src = `/audio/${data.file}`;
                 this.audio.load();
+                this.audio.currentTime = 0;
 
                 this.update_pushed = true;
 
@@ -137,7 +138,7 @@ new (class {
                 break;
 
             case "heartbeat":
-                const time = data.time / 1000;
+                const time = data.time;
                 const lag = Math.abs(Math.round((time - this.audio.currentTime) * 1000));
 
                 this.pings += 1;
