@@ -33,7 +33,7 @@ def index_files() -> list[tuple[Path, Any, str]]:
                     title, artist = audio["TITLE"][0], audio["ARTIST"][0]  # type: ignore
 
                 case ".opus" | ".m4a":
-                    continue  # Fallback to filename for now
+                    title, artist = None, None  # Fallback to filename for now
 
                 case _:
                     exit(f"radio: hit an unsupported file: {file}")
