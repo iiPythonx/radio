@@ -145,8 +145,9 @@ new (class {
 
             case "heartbeat":
                 const time = data.time;
-                console.log(Math.round(Date.now() / 1000) - data.clock, data.clock);
-                const lag = Math.abs(Math.round((time - this.audio.currentTime) * 1000));
+                const latency = (Date.now() - data.clock);
+                console.log("est latency", latency);
+                const lag = Math.abs(Math.round((time - this.audio.currentTime) * 1000) - latency);
 
                 this.pings += 1;
                 if (this.pings >= 5) {

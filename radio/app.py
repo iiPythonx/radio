@@ -94,7 +94,7 @@ class AppState:
 
                             break
 
-                        clock = round(time.time())
+                        clock = round(time.time() * 1000)
                         for client in self.clients:
                             await client.send_json({"type": "heartbeat", "data": {
                                 "time": elapsed, "users": client_count, "votes": vote_count,
