@@ -145,10 +145,14 @@ new (class {
 
             case "heartbeat":
                 const time = data.time;
-                const latency = (Date.now() - data.clock);
-                console.log(Date.now() - this.last_message_time, "ms ago was last message", 1000 - (Date.now() - this.last_message_time), "normalized");
-                this.last_message_time = Date.now()
-                console.log("est latency", latency);
+
+                // Handle latency/websocket lag calculations
+                const now = Date.now();
+                const pressure = this.last_message_time ? Math.abs(1000 - (now - this.last_message_time)) : 0;
+                const latency = (now - data.clock) + pressure;
+                this.last_message_time = now;
+
+                // Handle syncing
                 const lag = Math.abs(Math.round((time - this.audio.currentTime) * 1000) - latency);
 
                 this.pings += 1;
