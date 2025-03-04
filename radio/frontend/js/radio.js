@@ -23,9 +23,17 @@ new (class {
         });
 
         // Setup volume control
-        document.querySelector(`input[type = "range"]`).addEventListener("input", (e) => {
-            this.audio.volume = e.currentTarget.value / 100;
+        const volume_control = document.querySelector(`input[type = "range"]`);
+        const volume = (v) => this.audio.volume = v / 100;
+
+        volume_control.addEventListener("input", (e) => {
+            volume(e.currentTarget.value);
+            localStorage.setItem("volume", e.currentTarget.value);
         });
+
+        const existing_volume = +(localStorage.getItem("volume") || 75);
+        volume_control.value = existing_volume;
+        volume(existing_volume);
 
         // Setup audioMotion.js
         new AudioMotionAnalyzer(
