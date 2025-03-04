@@ -2,6 +2,7 @@
 # A next-generation web radio setup.
 
 # Modules
+import time
 import json
 import random
 import asyncio
@@ -93,10 +94,11 @@ class AppState:
 
                             break
 
+                        clock = round(time.time())
                         for client in self.clients:
                             await client.send_json({"type": "heartbeat", "data": {
                                 "time": elapsed, "users": client_count, "votes": vote_count,
-                                "vote_ratio": self.overrides.ratio
+                                "vote_ratio": self.overrides.ratio, "clock": clock
                             }})
 
                         await asyncio.sleep(1)
