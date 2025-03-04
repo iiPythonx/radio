@@ -60,8 +60,10 @@ progress {
     overflow: hidden;
     border: none;
     border-radius: .25rem;
+    background-color: #fff;
 }
 progress::-moz-progress-bar { background: rgb(1, 114, 173); }
+progress::-webkit-progress-bar { background-color: #fff; }
 progress::-webkit-progress-value { background: rgb(1, 114, 173); }
 section > h2 {
     margin-bottom: 10px;
@@ -112,13 +114,16 @@ footer:hover {
 #progress {
     flex: 1;
 }
+#download, input[type = "range"] {
+    opacity: 0;
+    transition: opacity .3s ease;
+}
 input[type = "range"] {
-    -webkit-appearance: none;
-    background: gray;
+    background: #fff;
     height: 8px;
     border-radius: 10px;
+    -webkit-appearance: none;
 }
-
 input[type = "range"]::-webkit-slider-thumb,
 input[type = "range"]::-moz-range-thumb {
     -webkit-appearance: none;
@@ -129,12 +134,9 @@ input[type = "range"]::-moz-range-thumb {
     background: rgb(1, 127, 192);
     cursor: pointer;
 }
-.green {
-    color: rgb(23, 242, 70);
+main:hover input[type = "range"], main:hover #download {
+    opacity: 1;
 }
-.yellow {
-    color: yellow;
-}
-.red {
-    color: rgb(255, 66, 66);
-}
+.green { color: rgb(23, 242, 70); }
+.yellow { color: yellow; }
+.red { color: rgb(255, 66, 66); }
