@@ -126,6 +126,7 @@ new (class {
                 this.audio.load();
 
                 this.update_pushed = true;
+                this.force_sync = true;
 
                 // Update UI
                 if (this.interval) clearInterval(this.interval);
