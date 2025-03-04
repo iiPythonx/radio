@@ -146,8 +146,8 @@ new (class {
             case "heartbeat":
                 const time = data.time;
                 const latency = (Date.now() - data.clock);
-                this.last_message_time = Date.now()
                 console.log(Date.now() - this.last_message_time, "ms ago was last message", 1000 - (Date.now() - this.last_message_time), "normalized");
+                this.last_message_time = Date.now()
                 console.log("est latency", latency);
                 const lag = Math.abs(Math.round((time - this.audio.currentTime) * 1000) - latency);
 
