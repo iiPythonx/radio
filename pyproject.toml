@@ -5,12 +5,16 @@ description = "A next generation web radio."
 readme = "README.md"
 requires-python = ">=3.13"
 dependencies = [
+    "click>=8.1.8",
     "fastapi>=0.115.8",
     "indigo-logger",
     "mutagen>=1.47.0",
     "rich>=13.9.4",
     "uvicorn[standard]>=0.34.0",
 ]
+
+[project.scripts]
+radio = "radio.__main__:radio"
 
 [tool.uv.sources]
 indigo-logger = { git = "https://github.com/iiPythonx/il" }

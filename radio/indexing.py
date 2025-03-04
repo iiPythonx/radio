@@ -1,23 +1,26 @@
 # Copyright (c) 2025 iiPython
 
 # Modules
-import os
 from typing import Any
 from pathlib import Path
 
 from mutagen._file import File
 
 from radio import console
+from radio.config import config
+
+MUSIC_LOCATION = config.get("music-folder")
+if MUSIC_LOCATION is None:
+    exit("radio: no music folder is set! please run `radio config music-folder /etc/example/music/path`.")
+
+elif not Path(MUSIC_LOCATION).is_dir():
+    exit("radio: config-provided music folder does not exist on the system!")
 
 # Main method
-MUSIC_LOCATION = Path(os.getenv("MUSICDIR") or (Path.cwd() / "music"))
-if not MUSIC_LOCATION.is_dir():
-    exit("radio: either $MUSICDIR wasn't provided, doesn't exist, or ./music doesn't exist!")
-
 def index_files() -> list[tuple[Path, Any, str]]:
     files = []
     with console.status("Indexing music...") as status:
-        for file in MUSIC_LOCATION.rglob("*"):
+        for file in Path(MUSIC_LOCATION).rglob("*"):
             if file.suffix not in [".mp3", ".wav", ".flac", ".opus", ".m4a"]:
                 continue
 
