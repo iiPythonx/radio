@@ -43,7 +43,7 @@ class AudioProcessor {
     }
 
     set_url(url) {
-        if (this.#audio_next.src) {
+        if (url === decodeURI(this.#audio_next.src.split("/audio/")[1])) {
             this.#audio.pause();
             this.motion.disconnectInput(this.#audio);
             this.#audio = this.#audio_next;
