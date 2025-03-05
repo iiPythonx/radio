@@ -77,7 +77,6 @@ new (class {
     }
 
     connect() {
-        this.ping_times = [];
         this.websocket = new WebSocket(`${location.protocol === "https:" ? "wss" : "ws"}://${location.host}/stream`);
         this.websocket.addEventListener("open", () => {
             this.websocket.addEventListener("message", (e) => {

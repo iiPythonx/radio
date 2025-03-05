@@ -62,7 +62,7 @@ class AppState:
             await client.send_json({
                 "type": "heartbeat",
                 "data": {
-                    "user_count": len(radio.clients),
+                    "user_count": len(set(c.ip for c in radio.clients)),
                     "vote_count": len([c for c in radio.clients if c.voted]),
                     "vote_ratio": radio.overrides.ratio
                 }
