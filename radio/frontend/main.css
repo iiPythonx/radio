@@ -90,17 +90,6 @@ header > a {
 header > a:hover {
     text-decoration: underline dotted;
 }
-footer {
-    right: 10px;
-    bottom: 10px;
-    font-family: monospace;
-    position: absolute;
-    cursor: pointer;
-    user-select: none;
-}
-footer:hover {
-    text-decoration: underline dotted;
-}
 #lag {
     cursor: pointer;
 }
@@ -140,6 +129,4 @@ input[type = "range"]::-moz-range-thumb {
 main:hover input[type = "range"], main:hover #download {
     opacity: 1;
 }
-.green { color: rgb(23, 242, 70); }
-.yellow { color: yellow; }
 .red { color: rgb(255, 66, 66); }

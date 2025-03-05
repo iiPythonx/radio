@@ -16,7 +16,6 @@ new (class {
                 document.addEventListener("click", () => {
                     if (!this.audio.paused) return;
                     this.audio.play();
-                    this.force_sync = true;
                     warning.innerText = "";
                 });
             }
@@ -53,27 +52,18 @@ new (class {
         );
 
         // Handle constant & connecting download button
-        this.should_sync = true;
         document.querySelector("#download").addEventListener("click", () => {
             window.location.assign(this.audio.src);
         });
 
         // Handle voteskipping
-        document.querySelector("footer").addEventListener("click", () => {
+        document.querySelector("#voteskip").addEventListener("click", () => {
             this.websocket.send(JSON.stringify({ type: "voteskip" }));
             this.voted = !this.voted;
-            document.querySelector("footer").innerText = document.querySelector("footer").innerText.replace(
+            document.querySelector("#voteskip").innerText = document.querySelector("#voteskip").innerText.replace(
                 this.voted ? "voteskip" : "voted",
                 this.voted ? "voted": "voteskip"
             );
-        });
-
-        // Handle force resyncing
-        document.querySelector("#lag").addEventListener("click", (e) => {
-            if (this.websocket.readyState !== WebSocket.OPEN) return;
-            e.currentTarget.innerText = "Syncing";
-            this.force_sync = true;
-            this.ping_times = [];
         });
 
         // Admin interface
@@ -95,24 +85,15 @@ new (class {
                 this.receive(data);
             });
 
-            // Handle syncing
-            if (this.sync_interval) clearInterval(this.interval);
-
-            this.sync();
-            this.sync_interval = setInterval(() => this.sync(), 5000);
+            this.sync_started = performance.now();
+            this.websocket.send(JSON.stringify({ type: "position" }));
         });
         this.websocket.addEventListener("close", () => {
-            document.querySelector("#lag").className = "red";
-            document.querySelector("#lag").innerText = "Connection lost";
-            clearInterval(this.sync_interval);
+            document.querySelector("#voteskip").className = "red";
+            document.querySelector("#voteskip").innerText = "Connection lost";
             setTimeout(() => this.connect(), 5000);
         });
         if (this.admin) this.admin.connect(this.websocket);
-    }
-
-    sync() {
-        this.sync_started = performance.now();
-        this.websocket.send(JSON.stringify({ type: "position" }));
     }
 
     seconds(s) {
@@ -131,27 +112,7 @@ new (class {
         const { type, data } = payload;
         switch (type) {
             case "position":
-                const accurate_position = data.elapsed + ((performance.now() - this.sync_started) / 2);
-                const lag = Math.round(Math.abs((accurate_position / 1000) - this.audio.currentTime)) * 1000;
-                if (lag > 100) this.audio.currentTime = accurate_position / 1000;
-                this.ping_times.push(this.ping_times.length ? lag : 0);
-                console.warn(`L: ${this.ping_times.at(-1).toFixed(2)} | P: ${(accurate_position / 1000).toFixed(1)} | A: ${this.audio.currentTime.toFixed(1)}`);
-                
-                // Show ping times
-                if (this.ping_times.length > 100) this.ping_times.splice(0, 1);
-                if (!this.audio.paused) {
-                    document.querySelector("#lag").className =
-                        lag >= 250 ? "red" :
-                        lag >= 150 ? "yellow" :
-                        "green";
-
-                    if (this.ping_times.length <= 5) {
-                        document.querySelector("#lag").innerText = `Connected (${lag}ms)`;
-                    } else {
-                        document.querySelector("#lag").innerText =
-                            `Connected (${lag}ms; Lowest: ${Math.min(...this.ping_times)}ms, Highest: ${Math.max(...this.ping_times)}ms, Avg: ${Math.round(this.ping_times.reduce((total, num) => total + num, 0) / this.ping_times.length)}ms)`;
-                    }
-                }
+                this.audio.currentTime = (data.elapsed + ((performance.now() - this.sync_started) / 2)) / 1000;
                 break;
 
             case "update":
@@ -159,7 +120,6 @@ new (class {
                 this.audio.load();
 
                 this.update_pushed = true;
-                this.force_sync = true;
 
                 // Update UI
                 if (this.interval) clearInterval(this.interval);
@@ -172,9 +132,10 @@ new (class {
 
             case "heartbeat":
                 const users = data.user_count, voters = data.vote_count;
-                document.querySelector("#listeners").innerText = `${users} ${users == 1 && "person" || "people"} listening along.`;
-                document.querySelector("footer").innerText = `${this.voted ? "voted" : "voteskip"} (${voters}/${Math.ceil(users * (data.vote_ratio / 100))})`;
                 if (!voters) this.voted = false;
+                document.querySelector("#listeners").innerText = `${users} ${users == 1 && "person" || "people"} listening along.`;
+                document.querySelector("#voteskip").className = "";
+                document.querySelector("#voteskip").innerText = `${this.voted ? "voted" : "voteskip"} (${voters}/${Math.ceil(users * (data.vote_ratio / 100))})`;
         }
     }
 });

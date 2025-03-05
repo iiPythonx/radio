@@ -57,6 +57,17 @@ class AppState:
     def time() -> int:
         return int(time.time() * 1000)
 
+    async def heartbeat(self) -> None:
+        for client in self.clients:
+            await client.send_json({
+                "type": "heartbeat",
+                "data": {
+                    "user_count": len(radio.clients),
+                    "vote_count": len([c for c in radio.clients if c.voted]),
+                    "vote_ratio": radio.overrides.ratio
+                }
+            })
+
     async def loop(self) -> None:
         last_track = None, None
         while True:
@@ -86,19 +97,10 @@ class AppState:
             def generate_status(elapsed: int, clients: int, votes: int) -> str:
                 return f"Next song in {round(audio.info.length - (elapsed / 1000))} second(s). Clients: {clients}; Skip votes: {votes}"
 
-            cc, vc = 0, 0
+            await self.heartbeat()
             with console.status(generate_status(0, 0, 0)) as status:
                 for elapsed in range(int(duration / 1000)):
-                    client_count = len(set(client.ip for client in self.clients))
-                    vote_count = len([client for client in self.clients if client.voted])
-                    if (cc != client_count) or (vc != vote_count):
-                        for client in self.clients:
-                            await client.send_json({"type": "heartbeat", "data": {
-                                "user_count": client_count, "vote_count": vote_count, "vote_ratio": self.overrides.ratio
-                            }})
-
-                        cc, vc = client_count, vote_count
-
+                    client_count, vote_count = len(self.clients), len([client for client in self.clients if client.voted])
                     if (self.clients and (vote_count >= client_count * (self.overrides.ratio / 100))) or self.overrides.skip:
                         for client in self.clients:
                             client.voted = False
@@ -136,11 +138,12 @@ async def stream_endpoint(websocket: WebSocket) -> None:
     # Handle lifecycle
     try:
         await websocket.send_json({"type": "update", "data": radio.current_track})
+        await radio.heartbeat()
         while True:
             response = await websocket.receive_json()
             match response:
-                case {"type": "position"} if radio.start_time:
-                    await websocket.send_json({"type": "position", "data": {"elapsed": radio.time() - radio.start_time}})
+                case {"type": "position"}:
+                    await websocket.send_json({"type": "position", "data": {"elapsed": radio.time() - radio.start_time}})  # type: ignore
 
                 case {"type": "voteskip"} if enable_voting:
                     client.voted = not client.voted
