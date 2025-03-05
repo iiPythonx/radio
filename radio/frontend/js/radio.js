@@ -1,3 +1,7 @@
+console.log("%c iiPython Radio", "font-size: 40px");
+console.log("Find any issues? Report them at https://github.com/iiPythonx/radio.");
+console.log("");
+
 class AudioProcessor {
     #audio;
     #audio_next;
@@ -49,13 +53,8 @@ class AudioProcessor {
             this.#audio = this.#audio_next;
 
             this.#audio_next = new Audio();
-            console.warn("[Debug] Audio #1 has been swapped with audio #2!");
-
             this.motion.connectInput(this.#audio);
-        } else {
-            this.#audio.src = `/audio/${url}`;
-            console.warn("[Debug] Audio #1 source has been set!");
-        }
+        } else { this.#audio.src = `/audio/${url}`; }
     }
 
     preload_url(url) {
@@ -124,7 +123,6 @@ new (class {
             this.websocket.addEventListener("message", (e) => {
                 const data = JSON.parse(e.data);
                 this.receive(data);
-                console.warn("[Debug]", data);
             });
         });
         this.websocket.addEventListener("close", () => {
