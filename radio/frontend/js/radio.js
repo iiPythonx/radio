@@ -1,12 +1,15 @@
 class AudioProcessor {
     #audio;
+    #audio_next;
 
     constructor() {
         this.#audio = new Audio();
-        this.#audio.addEventListener("canplay", () => this.#audio_loaded());
+        this.#audio.addEventListener("canplay", () => this.#audio_loaded());  // Fires for first song
+
+        this.#audio_next = new Audio();
 
         // Setup audioMotion.js
-        new AudioMotionAnalyzer(
+        this.motion = new AudioMotionAnalyzer(
             document.querySelector("#visualizer"),
             {
                 source: this.#audio,
@@ -35,18 +38,30 @@ class AudioProcessor {
     set_elapsed(elapsed) {
         this.elapsed_time = elapsed;
         this.elapsed_epoch = performance.now();
+
+        this.#audio_loaded();
     }
 
     set_url(url) {
-        this.#audio.src = `/audio/${url}`;
-        this.#audio.load();
+        if (this.#audio_next.src) {
+            this.#audio.pause();
+            this.motion.disconnectInput(this.#audio);
+            this.#audio = this.#audio_next;
+
+            this.#audio_next = new Audio();
+            console.warn("[Debug] Audio #1 has been swapped with audio #2!");
+
+            this.motion.connectInput(this.#audio);
+        } else {
+            this.#audio.src = `/audio/${url}`;
+            console.warn("[Debug] Audio #1 source has been set!");
+        }
     }
 
     preload_url(url) {
         console.log(`[Audio] Starting preload of [${url}]`);
-        const preloaded_audio = new Audio(`/audio/${url}`);
-        preloaded_audio.load();
-        preloaded_audio.addEventListener("canplay", () => console.log(`[Audio] Preload of [${url}] is done`));
+        this.#audio_next.src = `/audio/${url}`;
+        this.#audio_next.load();
     }
 
     volume(percentage) {
@@ -109,6 +124,7 @@ new (class {
             this.websocket.addEventListener("message", (e) => {
                 const data = JSON.parse(e.data);
                 this.receive(data);
+                console.warn("[Debug]", data);
             });
         });
         this.websocket.addEventListener("close", () => {

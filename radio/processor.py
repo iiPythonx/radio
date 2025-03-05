@@ -98,8 +98,9 @@ class RadioProcessor:
     async def process_votes(self) -> None:
         current_users = len(set(c.ip for c in self.clients))
         if len([c for c in self.clients if c.voted]) >= (current_users * (self.config.ratio / 100)):
-            self.skip()
             for client in self.clients:
                 client.voted = False
+
+            self.skip()
 
 radio = RadioProcessor()
