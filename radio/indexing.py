@@ -1,8 +1,8 @@
 # Copyright (c) 2025 iiPython
 
 # Modules
-from typing import Any
 from pathlib import Path
+from dataclasses import dataclass
 
 from mutagen._file import File
 
@@ -18,7 +18,14 @@ elif not Path(MUSIC_LOCATION).is_dir():
     exit("radio: config-provided music folder does not exist on the system!")
 
 # Typing and exceptions
-type Track = tuple[Path, Any, str]
+@dataclass
+class Track:
+    relative_path: str
+    title:         str
+    length:        int
+
+    def dict(self) -> dict:
+        return {"path": self.relative_path, "title": self.title, "length": self.length}
 
 class LoadIssue(Exception):
     pass
@@ -49,7 +56,11 @@ def load_file(path: Path) -> Track:
             raise UnsupportedFile(path)
 
     title = f"{artist} - {title}" if all((title, artist)) else path.with_suffix("").name
-    return (path, audio, title)
+    return Track(
+        str(path.relative_to(MUSIC_LOCATION)),
+        title,
+        int(audio.info.length * 1000)
+    )
 
 def index_files() -> list[Track]:
     files = []
