@@ -65,6 +65,7 @@ async def stream_endpoint(websocket: WebSocket) -> None:
 
                         case {"command": "set-ratio", "ratio": ratio} if client.admin:
                             radio.config.ratio = ratio
+                            await radio.update()
 
                         case {"command": "force-play", "file": file} if client.admin:
                             try:
