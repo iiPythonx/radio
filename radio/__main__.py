@@ -18,7 +18,8 @@ def radio() -> None:
 @radio.command()
 @click.argument("host", type = str)
 @click.argument("port", type = int)
-def serve(host: str, port: int) -> None:
+@click.option("--debug", is_flag = True, default = False, help = "Enable debug logging.")
+def serve(host: str, port: int, debug: bool) -> None:
     """Serve the web radio using uvicorn."""
 
     import uvicorn
@@ -28,7 +29,7 @@ def serve(host: str, port: int) -> None:
         app,
         host = host,
         port = port,
-        log_level = "critical"
+        log_level = "info" if debug else "critical"
     )
 
 @radio.command()

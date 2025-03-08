@@ -33,10 +33,16 @@ class LoadIssue(Exception):
 class UnsupportedFile(Exception):
     pass
 
+class NotRelative(Exception):
+    pass
+
 # Main method
 def load_file(path: Path) -> Track:
     if not path.is_file():
         raise LoadIssue
+
+    if not path.is_relative_to(MUSIC_LOCATION):
+        raise NotRelative
 
     audio = File(path)
     if audio is None:

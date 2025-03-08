@@ -55,7 +55,7 @@ progress {
     appearance: none;
     width: 100%;
     height: .5rem;
-    margin: calc(1rem * .5) 0px;
+    margin: calc(.5rem + 5px) 0px .5rem 0px;
     overflow: hidden;
     border: none;
     border-radius: .25rem;

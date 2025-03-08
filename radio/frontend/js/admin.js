@@ -29,7 +29,7 @@ export class AdminInterface {
     }
 
     async authorize() {
-        this.password = prompt("Admin password:");
+        this.password = prompt("Admin password:") || null;
         const { success, vote_ratio } = await new Promise((resolve) => {
             this.resolve = resolve;
             this.ws.send(JSON.stringify({

@@ -11,8 +11,11 @@ from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 from fastapi.staticfiles import StaticFiles
 
 from radio.config import config
+from radio.indexing import (
+    LoadIssue, UnsupportedFile, NotRelative,
+    load_file, MUSIC_LOCATION
+)
 from radio.processor import radio, Client
-from radio.indexing import LoadIssue, UnsupportedFile, load_file, MUSIC_LOCATION
 
 # Handle background tasks
 @asynccontextmanager
@@ -72,16 +75,16 @@ async def stream_endpoint(websocket: WebSocket) -> None:
                                 radio.queue[0] = load_file(Path(file).expanduser())
                                 radio.skip()
 
-                            except LoadIssue:
+                            except (LoadIssue, UnsupportedFile, NotRelative) as e:
                                 await websocket.send_json({
                                     "type": "admin",
-                                    "data": { "message": "Failed to load specified file, does it exist?" }
-                                })
-
-                            except UnsupportedFile:
-                                await websocket.send_json({
-                                    "type": "admin",
-                                    "data": { "message": "Specified file type is unsupported." }
+                                    "data": {
+                                        "message": {
+                                            LoadIssue: "Failed to load specified file, does it exist?",
+                                            UnsupportedFile: "Specified file type is unsupported.",
+                                            NotRelative: "Specified file is not relative to music location."
+                                        }[type(e)]
+                                    }
                                 })
 
                         case {"command": "force-skip"} if client.admin:
