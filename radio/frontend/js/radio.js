@@ -66,7 +66,7 @@ class AudioProcessor {
     }
 
     volume(percentage) {
-        this.#audio.volume = percentage / 100;
+        this.#audio.volume = (101 ** (percentage / 100) - 1) / 100;
     }
 
     get time() {
