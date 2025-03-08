@@ -48,9 +48,11 @@ class AudioProcessor {
 
     set_url(url) {
         if (url === decodeURI(this.#audio_next.src.split("/audio/")[1])) {
+			const volume = this.#audio.volume;
             this.#audio.pause();
             this.motion.disconnectInput(this.#audio);
             this.#audio = this.#audio_next;
+			this.#audio.volume = volume;
 
             this.#audio_next = new Audio();
             this.motion.connectInput(this.#audio);
@@ -86,11 +88,61 @@ new (class {
         volume_control.addEventListener("input", (e) => {
             this.audio.volume(e.currentTarget.value);
             localStorage.setItem("volume", e.currentTarget.value);
+			document.querySelector("#mute").innerText = e.currentTarget.value === "0" ? "/muted/" : "/mute/";
+			document.querySelector("#volumn").innerText = `(${e.currentTarget.value}%)`;
         });
-
+		
         const existing_volume = +(localStorage.getItem("volume") || 75);
         volume_control.value = existing_volume;
         this.audio.volume(existing_volume);
+		document.querySelector("#mute").innerText = existing_volume === "0" ? "/muted/" : "/mute/";
+		document.querySelector("#volumn").innerText = `(${existing_volume}%)`;
+
+		document.querySelector("#mute").addEventListener("click", () => {
+            this.audio.volume(0);
+            localStorage.setItem("volume", 0);
+			volume_control.value = 0;			
+			document.querySelector("#mute").innerText = "/muted/";
+			document.querySelector("#volumn").innerText = "(0%)";
+		});
+		
+		// Update visualizer width
+		document.querySelector("#moder").addEventListener("click", () => {
+			switch(this.audio.motion.mode) {
+				case 0: case 1: case 2: case 3: case 4: case 5: {
+					this.audio.motion.mode++;
+					this.audio.motion.start();
+					localStorage.setItem("moder", this.audio.motion.mode);
+					document.getElementById("visualizer").style.display = "";
+					document.querySelector("#moder").innerText = `/visualizer:m${this.audio.motion.mode}/`;
+					break;
+				}
+				case 6: default: {
+					this.audio.motion.mode = 0;
+					this.audio.motion.stop();
+					localStorage.setItem("moder", this.audio.motion.mode);
+					document.getElementById("visualizer").style.display = "none";
+					document.querySelector("#moder").innerText = `/visualizer:off/`;
+					break;
+				}
+			}
+		});
+
+		const existing_mode = +(localStorage.getItem("moder") ?? 4);
+		switch(existing_mode) {
+			case 1: case 2: case 3: case 4: case 5: case 6: {
+				this.audio.motion.mode = existing_mode;
+				document.querySelector("#moder").innerText = `/visualizer:m${this.audio.motion.mode}/`;
+				break;
+			}
+			case 0: default: {
+				this.audio.motion.mode = 0;
+				this.audio.motion.stop();
+				document.getElementById("visualizer").style.display = "none";
+				document.querySelector("#moder").innerText = `/visualizer:off/`;
+				break;
+			}
+		}
 
         // Handle voteskipping
         document.querySelector("#voteskip").addEventListener("click", () => {
@@ -155,9 +207,10 @@ new (class {
             case "update":
                 const { user_count, vote_count, vote_ratio } = data;
                 if (!vote_count) this.voted = false;
-                document.querySelector("#listeners").innerText = `${user_count} ${user_count === 1 && "person" || "people"} listening along.`;
+                document.querySelector("#listeners").innerText = `(${user_count} listening along)`;
+                document.querySelector("#voted").innerText = `(${vote_count} / ${Math.ceil(user_count * (vote_ratio / 100))} voted)`;
                 document.querySelector("#voteskip").className = "";
-                document.querySelector("#voteskip").innerText = `${this.voted ? "voted" : "voteskip"} (${vote_count}/${Math.ceil(user_count * (vote_ratio / 100))})`;
+                document.querySelector("#voteskip").innerText = this.voted ? "/voted/" : "/voteskip/";
 
                 const { length, path, title } = data.this_track;
                 if (path === this.audio.path) return console.warn(`[Radio] Received an update request, but no song change was processed (skip, vote, client change).`);
