@@ -89,21 +89,21 @@ new (class {
             this.audio.volume(e.currentTarget.value);
             localStorage.setItem("volume", e.currentTarget.value);
 			document.querySelector("#mute").innerText = e.currentTarget.value === "0" ? "/muted/" : "/mute/";
-			document.querySelector("#volumn").innerText = `(${e.currentTarget.value}%)`;
+			document.querySelector("#volume").innerText = `(${e.currentTarget.value}%)`;
         });
 		
         const existing_volume = +(localStorage.getItem("volume") || 75);
         volume_control.value = existing_volume;
         this.audio.volume(existing_volume);
 		document.querySelector("#mute").innerText = existing_volume === "0" ? "/muted/" : "/mute/";
-		document.querySelector("#volumn").innerText = `(${existing_volume}%)`;
+		document.querySelector("#volume").innerText = `(${existing_volume}%)`;
 
 		document.querySelector("#mute").addEventListener("click", () => {
             this.audio.volume(0);
             localStorage.setItem("volume", 0);
 			volume_control.value = 0;			
 			document.querySelector("#mute").innerText = "/muted/";
-			document.querySelector("#volumn").innerText = "(0%)";
+			document.querySelector("#volume").innerText = "(0%)";
 		});
 		
 		// Update visualizer width

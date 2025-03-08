@@ -104,7 +104,7 @@ main > div span {
 	text-decoration: underline dotted;
 	user-select: none;
 }
-#volumn {
+#volume {
 	width: 45px;
 }
 input[type = "range"] {
@@ -139,34 +139,4 @@ input[type = "range"]::-moz-range-thumb {
     bottom: 0px;
     position: absolute;
 }
-/* #download, input[type = "range"] {
-    opacity: 0;
-    transition: opacity .3s ease;
-} */
-
-/* button {
-    background-color: rgb(1, 127, 192);
-    border-radius: .25rem;
-    border: none;
-    cursor: pointer;
-    padding: 5px;
-    aspect-ratio: 1;
-    transition: background-color .3s ease;
-    height: 100%;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-}
-button:hover {
-    background-color: rgba(1, 127, 192, .8);
-} */
-
-/* section > h2 {
-    margin-bottom: 10px;
-}
-section > button {
-    padding: 10px 20px;
-    aspect-ratio: 0;
-} */
-
 .red { color: rgb(255, 66, 66); }
