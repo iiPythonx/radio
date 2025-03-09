@@ -9,6 +9,7 @@ from contextlib import asynccontextmanager
 
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 from fastapi.staticfiles import StaticFiles
+from fastapi.responses import JSONResponse
 
 from radio.config import config
 from radio.indexing import (
@@ -26,6 +27,11 @@ async def lifespan(app: FastAPI):
 # Initialization
 app = FastAPI(openapi_url = None, lifespan = lifespan)
 app.mount("/audio", StaticFiles(directory = MUSIC_LOCATION))
+
+# Handle tracklist
+@app.get("/tracklist")
+async def send_tracklist() -> JSONResponse:
+    return radio.tracklist
 
 # Handle connection socket
 @app.websocket("/stream")

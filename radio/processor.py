@@ -7,6 +7,7 @@ import asyncio
 
 import il
 from fastapi import WebSocket
+from fastapi.responses import JSONResponse
 
 from radio.indexing import index_files, Track
 
@@ -37,6 +38,8 @@ class RadioProcessor:
 
         # Load tracks
         self.tracks: list[Track] = index_files()
+        self.tracklist: JSONResponse = JSONResponse([track.dict() for track in self.tracks])
+
         il.indent(f"{len(self.tracks)} song(s) indexed, good to go!", indent = 3)
         il.rule(38)
 

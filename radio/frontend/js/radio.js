@@ -183,6 +183,13 @@ new (class {
             setTimeout(() => this.connect(), 5000);
         });
         if (this.admin) this.admin.connect(this.websocket);
+
+        // Refetch tracklist
+        // Making use of .then to not block .connect() calls
+        fetch("/tracklist").then(async (response) => {
+            this.tracklist = await response.json();
+            console.log(this.tracklist);
+        });
     }
 
     seconds(s) {
