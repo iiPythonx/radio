@@ -56,6 +56,12 @@ class RadioProcessor:
     def skip(self) -> None:
         self.skip_event.set()
 
+    def downvote(self, ip: str) -> None:
+        if self.current_track is None:
+            return  # The hell happened here?
+
+        config.add_downvote(self.current_track.relative_path, ip)
+
     async def update(self, client: typing.Optional[Client] = None) -> None:
         if self.current_track is None:
             raise RuntimeError("update() was called but no track is currently running!")

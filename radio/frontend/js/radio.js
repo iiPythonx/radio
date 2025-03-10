@@ -108,7 +108,7 @@ new (class {
 		
 		// Update visualizer width
 		document.querySelector("#moder").addEventListener("click", () => {
-			switch(this.audio.motion.mode) {
+			switch (this.audio.motion.mode) {
 				case 0: case 1: case 2: case 3: case 4: case 5: {
 					this.audio.motion.mode++;
 					this.audio.motion.start();
@@ -128,8 +128,23 @@ new (class {
 			}
 		});
 
+        // Handle shift clicking voteskip
+        document.addEventListener("keydown", (e) => {
+            if (e.key === "Shift") {
+                this.shift = true;  // :3
+                document.querySelector("#voteskip").innerText = "/downvote/";
+            }
+        });
+        document.addEventListener("keyup", (e) => {
+            if (e.key === "Shift") {
+                this.shift = false;
+                document.querySelector("#voteskip").innerText = this.voted ? `/voted/` : `/voteskip/`;
+            }
+        });
+
+        // Handle visualizer mode
 		const existing_mode = +(localStorage.getItem("moder") ?? 4);
-		switch(existing_mode) {
+		switch (existing_mode) {
 			case 1: case 2: case 3: case 4: case 5: case 6: {
 				this.audio.motion.mode = existing_mode;
 				document.querySelector("#moder").innerText = `/visualizer:m${this.audio.motion.mode}/`;
@@ -146,12 +161,10 @@ new (class {
 
         // Handle voteskipping
         document.querySelector("#voteskip").addEventListener("click", () => {
+            if (this.shift) this.websocket.send(JSON.stringify({ type: "downvote" }));
             this.websocket.send(JSON.stringify({ type: "voteskip" }));
             this.voted = !this.voted;
-            document.querySelector("#voteskip").innerText = document.querySelector("#voteskip").innerText.replace(
-                this.voted ? "voteskip" : "voted",
-                this.voted ? "voted": "voteskip"
-            );
+            document.querySelector("#voteskip").innerText = this.voted ? `/voted/` : `/voteskip/`;
         });
 
         // Admin interface

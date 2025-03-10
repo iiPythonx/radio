@@ -45,4 +45,19 @@ class Configuration:
         self._data[key] = self.supported_keys[key](value)
         self.propagate()
 
+    def get_downvotes(self) -> dict[str, list[str]]:
+        return self._data.get("downvotes", {})
+
+    def add_downvote(self, file: str, ip: str) -> None:
+        downvotes = self.get_downvotes()
+        if file not in downvotes:
+            downvotes[file] = []
+
+        if ip in downvotes[file]:
+            return
+
+        downvotes[file].append(ip)
+        self._data["downvotes"] = downvotes
+        self.propagate()
+
 config = Configuration()

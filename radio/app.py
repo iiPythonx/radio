@@ -60,6 +60,9 @@ async def stream_endpoint(websocket: WebSocket) -> None:
                     await radio.update()
                     await radio.process_votes()
 
+                case {"type": "downvote"} if enable_voting:  # enable_voting is locked to one ip
+                    radio.downvote(ip)
+
                 case {"type": "admin", "data": data}:
                     match data:
                         case {"command": "connect", "password": password}:
