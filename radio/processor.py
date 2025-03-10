@@ -2,7 +2,6 @@
 
 import time
 import random
-import typing
 import asyncio
 
 import il
@@ -62,11 +61,11 @@ class RadioProcessor:
 
         config.add_downvote(self.current_track.relative_path, ip)
 
-    async def update(self, client: typing.Optional[Client] = None) -> None:
+    async def update(self) -> None:
         if self.current_track is None:
             raise RuntimeError("update() was called but no track is currently running!")
 
-        for client in [client] if client else self.clients:
+        for client in self.clients:
             await client.send_json({
                 "type": "update",
                 "data": {

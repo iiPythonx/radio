@@ -48,7 +48,7 @@ async def stream_endpoint(websocket: WebSocket) -> None:
 
     # Handle lifecycle
     try:
-        await radio.update(client)
+        await radio.update()
         while True:
             response = await websocket.receive_json()
             match response:
