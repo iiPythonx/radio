@@ -60,4 +60,10 @@ class Configuration:
         self._data["downvotes"] = downvotes
         self.propagate()
 
+    def clear_downvotes(self) -> None:
+        if "downvotes" in self._data:
+            del self._data["downvotes"]
+
+        self.propagate()
+
 config = Configuration()

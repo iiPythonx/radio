@@ -65,5 +65,29 @@ def config(key: typing.Optional[str] = None, value: typing.Optional[str] = None)
 
     click.secho("× Specified key hasn't been set yet!", fg = "red")
 
+@radio.command()
+@click.option("--clear", is_flag = True, help = "Wipe out the downvote database")
+def downvotes(clear: bool) -> None:
+    """Check track downvotes."""
+
+    from radio.config import config
+    if clear:
+        config.clear_downvotes()
+        return click.secho("✓ Downvotes cleared!", fg = "green")
+
+    downvotes = {k: len(v) for k, v in config.get_downvotes().items()}
+
+    print("\033[90mVotes\t: File path")
+
+    for file, downvotes in {
+        k: downvotes[k] for k in sorted(
+            downvotes,
+            key = lambda k: downvotes[k]  # pyright: ignore
+        )[::-1]
+    }.items():
+        print(f"{downvotes}\t: {file}")
+
+    print("\033[0m", end = "")
+
 if __name__ == "__main__":
     radio()
