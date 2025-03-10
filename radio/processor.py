@@ -9,10 +9,12 @@ import il
 from fastapi import WebSocket
 from fastapi.responses import JSONResponse
 
+from radio.config import config
 from radio.indexing import index_files, Track
 
 class ProcessorConfig:
-    ratio: int = 50
+    ratio: int = config.get("vote-ratio") or 50
+    buffer_size: int = config.get("buffer-size") or 10
 
 class Client:
     def __init__(self, websocket: WebSocket, ip: str) -> None:
@@ -25,9 +27,10 @@ class RadioProcessor:
         self.current_track: Track | None = None
 
         self.config = ProcessorConfig()
-
         self.skip_event = asyncio.Event()
+
         self.queue: list[Track] = []
+        self.track_buffer: list[Track] = []
 
         # Generate box
         il.box(
@@ -88,12 +91,15 @@ class RadioProcessor:
         except TimeoutError:
             pass
 
+        self.track_buffer = (self.track_buffer + [track])[-self.config.buffer_size:]
+
     async def loop(self) -> None:
         while True:
             self.skip_event.clear()
             while len(self.queue) != 2:
                 self.queue.append(random.choice(self.tracks))
-                if len(self.queue) == 2 and self.queue[0].relative_path == self.queue[-1].relative_path:
+                if len(self.queue) == 2 and self.queue[-1] in self.track_buffer:
+                    print("Re-randomized")
                     self.queue.pop()  # Select another track instead
 
             await self.start_track(self.queue.pop(0))

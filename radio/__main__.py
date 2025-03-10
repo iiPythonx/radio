@@ -33,18 +33,30 @@ def serve(host: str, port: int, debug: bool) -> None:
     )
 
 @radio.command()
-@click.argument("key")
+@click.argument("key", required = False)
 @click.argument("value", required = False)
-def config(key: str, value: typing.Optional[str] = None) -> None:
+def config(key: typing.Optional[str] = None, value: typing.Optional[str] = None) -> None:
     """Configure an option via CLI."""
 
     from radio.config import config
+    if key is None:
+        print("\033[90m|  Live configuration:")
+        for _k, _v in config._data.items():
+            print(f"|    {_k}: {_v}")
+
+        return print("└→ Available:", ", ".join(config.supported_keys))
+
     if key not in config.supported_keys:
         click.secho("×  Invalid configuration option!", fg = "red")
-        return print("\033[90m└→ Available:", ", ".join(config.supported_keys), "\033[0m")
+        return click.secho(f"└→ Available: {', '.join(config.supported_keys)}", fg = "red")
 
     if value is not None:
-        config.set(key, value)
+        try:
+            config.set(key, value)
+        
+        except Exception as e:
+            return click.secho(f"× {e}", fg = "red")
+
         return click.secho("✓ Configuration updated!", fg = "green")
 
     value = config.get(key)
