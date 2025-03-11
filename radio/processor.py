@@ -4,7 +4,6 @@ import time
 import random
 import asyncio
 
-import il
 from fastapi import WebSocket
 from fastapi.responses import JSONResponse
 
@@ -32,18 +31,16 @@ class RadioProcessor:
         self.track_buffer: list[Track] = []
 
         # Generate box
-        il.box(
-            size = 38,
-            left = "Web Radio",
-            right = "(c) 2025 iiPython",
-        )
+        print(f"\033[34m┌{'─' * 36}┐")
+        print(f"│ Web Radio{' ' * 8}(c) 2025 iiPython │")
+        print(f"└{'─' * 36}┘\033[0m")
 
         # Load tracks
         self.tracks: list[Track] = index_files()
         self.tracklist: JSONResponse = JSONResponse([track.dict() for track in self.tracks])
 
-        il.indent(f"{len(self.tracks)} song(s) indexed, good to go!", indent = 3)
-        il.rule(38)
+        print(f"\033[34m   {len(self.tracks)} song(s) indexed, good to go!")
+        print("─" * 38, "\033[0m")
 
         # Handle unique data
         self.clients: set[Client] = set()
@@ -81,9 +78,9 @@ class RadioProcessor:
         self.current_track = track
 
         # Log to console
-        il.create_log(f"\033[33m\u26A1 New Song [{track.title}]")
-        il.create_log(f"\033[90m   │   \033[90m{track.relative_path}")
-        il.create_log(f"\033[90m   └→  \033[90mNow Playing\t\033[33m[{(track.length / 1000):.1f} second(s)]\033[0m")
+        print(f"\033[33m\u26A1 New Song [{track.title}]")
+        print(f"\033[90m   │   \033[90m{track.relative_path}")
+        print(f"\033[90m   └→  \033[90mNow Playing\t\033[33m[{(track.length / 1000):.1f} second(s)]\033[0m")
 
         # Send track update
         self.start_time = self.time()
