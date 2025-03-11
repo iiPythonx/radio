@@ -88,8 +88,8 @@ new (class {
         volume_control.addEventListener("input", (e) => {
             this.audio.volume(e.currentTarget.value);
             localStorage.setItem("volume", e.currentTarget.value);
-			z("#mute").innerText = e.currentTarget.value === "0" ? "/muted/" : "/mute/";
-			z("#volume").innerText = `(${e.currentTarget.value}%)`;
+			z("#mute",   { text: e.currentTarget.value === "0" ? "/muted/" : "/mute/" });
+			z("#volume", { text: `(${e.currentTarget.value}%)` });
         });
 		
         const existing_volume = +(localStorage.getItem("volume") || 75);
@@ -113,16 +113,16 @@ new (class {
 					this.audio.motion.mode++;
 					this.audio.motion.start();
 					localStorage.setItem("moder", this.audio.motion.mode);
-					z("#visualizer").style.display = "";
-					z("#moder").innerText = `/visualizer:m${this.audio.motion.mode}/`;
+					z("#moder",      { text: `/visualizer:m${this.audio.motion.mode}/` });
+					z("#visualizer", { style: { display: "none" } });
 					break;
 				}
 				case 6: default: {
 					this.audio.motion.mode = 0;
 					this.audio.motion.stop();
 					localStorage.setItem("moder", this.audio.motion.mode);
-					z("#visualizer", { style: { display: "none" } });
 					z("#moder",      { text: "/visualizer:off/" });
+					z("#visualizer", { style: { display: "none" } });
 					break;
 				}
 			}
