@@ -16,7 +16,7 @@ from radio.indexing import (
     LoadIssue, UnsupportedFile, NotRelative,
     load_file, MUSIC_LOCATION
 )
-from radio.processor import radio, Client
+from radio.processor import IndexState, Client, radio
 
 # Handle background tasks
 @asynccontextmanager
@@ -31,7 +31,7 @@ app.mount("/audio", StaticFiles(directory = MUSIC_LOCATION))
 # Handle tracklist
 @app.get("/tracklist")
 async def send_tracklist() -> JSONResponse:
-    return radio.tracklist
+    return JSONResponse(radio.encoded_tracks)
 
 # Handle connection socket
 @app.websocket("/stream")
@@ -98,6 +98,21 @@ async def stream_endpoint(websocket: WebSocket) -> None:
 
                         case {"command": "force-skip"} if client.admin:
                             radio.skip()
+
+                        case {"command": "reindex"} if client.admin:
+                            if radio.index_state == IndexState.LOADING:
+                                await websocket.send_json({"type": "admin", "data": {"message": "Reindex already in progress."}})
+                                continue
+
+                            def indexing_complete(_: asyncio.Future) -> None:
+                                asyncio.create_task(websocket.send_json({"type": "admin", "data": {}}))
+
+                            # /could/ be simplified using to_thread() but then i would need to use create_task()
+                            # and that would just be ugly so nty
+                            task = asyncio.get_event_loop().run_in_executor(None, radio.load_index)
+                            task.add_done_callback(indexing_complete)
+
+                            radio.index_state = IndexState.LOADING
 
     except json.JSONDecodeError:
         await websocket.send_json({"type": "issue", "data": "Your client did not send proper JSON, please check your encoding and reconnect."})

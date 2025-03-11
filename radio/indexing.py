@@ -20,12 +20,12 @@ elif not Path(MUSIC_LOCATION).is_dir():
 # Typing and exceptions
 @dataclass
 class Track:
-    relative_path: str
+    path:          str
     title:         str
     length:        int
 
     def dict(self) -> dict:
-        return {"path": self.relative_path, "title": self.title, "length": self.length}
+        return {"path": self.path, "title": self.title, "length": self.length}
 
 class LoadIssue(Exception):
     pass
@@ -61,10 +61,9 @@ def load_file(path: Path) -> Track:
         case _:
             raise UnsupportedFile(path)
 
-    title = f"{artist} - {title}" if all((title, artist)) else path.with_suffix("").name
     return Track(
         str(path.relative_to(MUSIC_LOCATION)),
-        title,
+        f"{artist} - {title}" if all((title, artist)) else path.with_suffix("").name,
         int(audio.info.length * 1000)
     )
 

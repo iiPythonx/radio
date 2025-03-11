@@ -5,10 +5,13 @@ import random
 import asyncio
 
 from fastapi import WebSocket
-from fastapi.responses import JSONResponse
 
 from radio.config import config
 from radio.indexing import index_files, Track
+
+class IndexState:
+    LOADING = 1
+    OK      = 2
 
 class ProcessorConfig:
     ratio: int = config.get("vote-ratio") or 50
@@ -35,9 +38,11 @@ class RadioProcessor:
         print(f"│ Web Radio{' ' * 8}(c) 2025 iiPython │")
         print(f"└{'─' * 36}┘\033[0m")
 
-        # Load tracks
-        self.tracks: list[Track] = index_files()
-        self.tracklist: JSONResponse = JSONResponse([track.dict() for track in self.tracks])
+        # Load index
+        self.tracks: list[Track] = []
+        self.encoded_tracks: list[dict[str, str | int]] = []
+
+        self.load_index()
 
         print(f"\033[34m   {len(self.tracks)} song(s) indexed, good to go!")
         print("─" * 38, "\033[0m")
@@ -56,7 +61,14 @@ class RadioProcessor:
         if self.current_track is None:
             return  # The hell happened here?
 
-        config.add_downvote(self.current_track.relative_path, ip)
+        config.add_downvote(self.current_track.path, ip)
+
+    def load_index(self) -> None:
+        self.tracks = ([Track(**t) for t in config.get_index()] if not self.tracks else []) or index_files()
+        self.encoded_tracks = [t.dict() for t in self.tracks]
+
+        config.set_index(self.encoded_tracks)
+        self.index_state = IndexState.OK
 
     async def update(self) -> None:
         if self.current_track is None:
@@ -69,7 +81,7 @@ class RadioProcessor:
                     "user_count": len(set(c.ip for c in self.clients)),
                     "vote_count": len([c for c in self.clients if c.voted]),
                     "vote_ratio": self.config.ratio,
-                    "next_track": self.queue[-1].relative_path,
+                    "next_track": self.queue[-1].path,
                     "this_track": self.current_track.dict()
                 }
             })
@@ -79,7 +91,7 @@ class RadioProcessor:
 
         # Log to console
         print(f"\033[33m\u26A1 New Song [{track.title}]")
-        print(f"\033[90m   │   \033[90m{track.relative_path}")
+        print(f"\033[90m   │   \033[90m{track.path}")
         print(f"\033[90m   └→  \033[90mNow Playing\t\033[33m[{(track.length / 1000):.1f} second(s)]\033[0m")
 
         # Send track update
@@ -101,7 +113,6 @@ class RadioProcessor:
             while len(self.queue) != 2:
                 self.queue.append(random.choice(self.tracks))
                 if len(self.queue) == 2 and self.queue[-1] in self.track_buffer:
-                    print("Re-randomized")
                     self.queue.pop()  # Select another track instead
 
             await self.start_track(self.queue.pop(0))

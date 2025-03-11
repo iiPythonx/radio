@@ -27,10 +27,10 @@ header > a, header > span {
     font-family: monospace;
     text-decoration: none;
 	cursor: pointer;
+    user-select: none;
 }
 header > a:hover, header > span:hover {
     text-decoration: underline dotted;
-	user-select: none;
 }
 
 h2 {
@@ -95,14 +95,14 @@ main > div span {
 	transition: opacity .3s ease;
 	transition-delay: .3s;
 }
-#controller a, #controller span {
+#controller a, #controller span, #admin span {
 	font-family: monospace;
 	text-decoration: none;
+    user-select: none;
 }
-#download:hover, #mute:hover, #voteskip:hover {
+#download:hover, #mute:hover, #voteskip:hover, #admin span:hover {
 	cursor: pointer;
 	text-decoration: underline dotted;
-	user-select: none;
 }
 #volume {
 	width: 45px;

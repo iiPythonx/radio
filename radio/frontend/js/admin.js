@@ -57,11 +57,10 @@ export class AdminInterface {
                 #admin * {
                     font-family: monospace;
                 }
-                input:not([type = "range"]) {
+                #admin input {
                     background: none;
-                    border: none;
-                    outline: none;
-                    border-bottom: 1px solid gray;
+                    border: 1px solid gray;
+                    padding-left: 5px;
                 }
                 .hidden { display: none; }
                 .divider {
@@ -78,18 +77,11 @@ export class AdminInterface {
                     <span>%</span>
                 </div>
                 <div class = "divider"></div>
-                <input style = "flex: 1;" placeholder = "/mnt/music/path/to/file.mp3" id = "file">
-                <button id = "force-play">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
-                        <path d="m11.596 8.697-6.363 3.692c-.54.313-1.233-.066-1.233-.697V4.308c0-.63.692-1.01 1.233-.696l6.363 3.692a.802.802 0 0 1 0 1.393"/>
-                    </svg>
-                </button>
+                <span id = "force-play">Force Play</span>
                 <div class = "divider"></div>
-                <button id = "force-skip">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
-                        <path d="M12.5 4a.5.5 0 0 0-1 0v3.248L5.233 3.612C4.693 3.3 4 3.678 4 4.308v7.384c0 .63.692 1.01 1.233.697L11.5 8.753V12a.5.5 0 0 0 1 0z"/>
-                    </svg>
-                </button>
+                <span id = "force-skip">Force Skip</span>
+                <div class = "divider"></div>
+                <span id = "reindex">Reindex</span>
             </div>
         `;
         document.querySelector("body").appendChild(this.interface);
@@ -98,25 +90,25 @@ export class AdminInterface {
         document.querySelector("#force-play").addEventListener("click", () => {
             this.ws.send(JSON.stringify({
                 type: "admin",
-                data: {
-                    command: "force-play",
-                    file: document.querySelector("#file").value
-                }
+                data: { command: "force-play", file: prompt("File path:") }
             }));
         });
+
         document.querySelector("#force-skip").addEventListener("click", () => {
-            this.ws.send(JSON.stringify({
-                type: "admin",
-                data: { command: "force-skip" }
-            }));
+            this.ws.send(JSON.stringify({ type: "admin", data: { command: "force-skip" } }));
         });
+
+        const reindex = document.querySelector("#reindex");
+        reindex.addEventListener("click", (e) => {
+            this.ws.send(JSON.stringify({ type: "admin", data: { command: "reindex" } }));
+            reindex.innerText = "Indexing...";
+            this.resolve = () => { reindex.innerText = "Reindex"; };
+        });
+
         document.querySelector("#ratio").addEventListener("change", (e) => {
             this.ws.send(JSON.stringify({
                 type: "admin",
-                data: {
-                    command: "set-ratio",
-                    ratio: +e.currentTarget.value
-                }
+                data: { command: "set-ratio", ratio: +e.currentTarget.value }
             }));
         });
     }

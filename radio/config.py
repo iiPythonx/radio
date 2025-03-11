@@ -45,6 +45,13 @@ class Configuration:
         self._data[key] = self.supported_keys[key](value)
         self.propagate()
 
+    def get_index(self) -> list[dict]:
+        return self._data.get("index", [])
+
+    def set_index(self, index: list[dict]) -> None:
+        self._data["index"] = index
+        self.propagate()
+
     def get_downvotes(self) -> dict[str, list[str]]:
         return self._data.get("downvotes", {})
 
