@@ -11,7 +11,7 @@ source .venv/bin/activate
 uv pip install -e .
 ```
 
-`il` and `rich` are not *required*, and you can remove them from the codebase if you don't mind downgrading your log setup.
+`rich` is not *required*, and you can remove it from the codebase if you don't mind downgrading your log setup.
 
 ### Configuration
 
