@@ -42,6 +42,9 @@ def config(key: typing.Optional[str] = None, value: typing.Optional[str] = None)
     if key is None:
         print("\033[90m|  Live configuration:")
         for _k, _v in config._data.items():
+            if _k in ["index", "downvotes"]:
+                continue
+
             print(f"|    {_k}: {_v}")
 
         return print("└→ Available:", ", ".join(config.supported_keys))
