@@ -84,87 +84,73 @@ new (class {
         this.audio = new AudioProcessor();
 
         // Setup volume control
-        const volume_control = document.querySelector(`input[type = "range"]`);
+        const volume_control = z("#vslide");
         volume_control.addEventListener("input", (e) => {
             this.audio.volume(e.currentTarget.value);
             localStorage.setItem("volume", e.currentTarget.value);
-			document.querySelector("#mute").innerText = e.currentTarget.value === "0" ? "/muted/" : "/mute/";
-			document.querySelector("#volume").innerText = `(${e.currentTarget.value}%)`;
+			z("#mute").innerText = e.currentTarget.value === "0" ? "/muted/" : "/mute/";
+			z("#volume").innerText = `(${e.currentTarget.value}%)`;
         });
 		
         const existing_volume = +(localStorage.getItem("volume") || 75);
         volume_control.value = existing_volume;
         this.audio.volume(existing_volume);
-		document.querySelector("#mute").innerText = existing_volume === "0" ? "/muted/" : "/mute/";
-		document.querySelector("#volume").innerText = `(${existing_volume}%)`;
+		z("#mute",   { text: existing_volume === "0" ? "/muted/" : "/mute/" });
+		z("#volume", { text: `(${existing_volume}%)` });
 
-		document.querySelector("#mute").addEventListener("click", () => {
+		z("#mute").addEventListener("click", () => {
             this.audio.volume(0);
             localStorage.setItem("volume", 0);
-			volume_control.value = 0;			
-			document.querySelector("#mute").innerText = "/muted/";
-			document.querySelector("#volume").innerText = "(0%)";
+			volume_control.value = 0;
+			z("#mute",   { text: "/muted/" });
+			z("#volume", { text: "(0%)"    });
 		});
 		
 		// Update visualizer width
-		document.querySelector("#moder").addEventListener("click", () => {
+		z("#moder").addEventListener("click", () => {
 			switch (this.audio.motion.mode) {
 				case 0: case 1: case 2: case 3: case 4: case 5: {
 					this.audio.motion.mode++;
 					this.audio.motion.start();
 					localStorage.setItem("moder", this.audio.motion.mode);
-					document.getElementById("visualizer").style.display = "";
-					document.querySelector("#moder").innerText = `/visualizer:m${this.audio.motion.mode}/`;
+					z("#visualizer").style.display = "";
+					z("#moder").innerText = `/visualizer:m${this.audio.motion.mode}/`;
 					break;
 				}
 				case 6: default: {
 					this.audio.motion.mode = 0;
 					this.audio.motion.stop();
 					localStorage.setItem("moder", this.audio.motion.mode);
-					document.getElementById("visualizer").style.display = "none";
-					document.querySelector("#moder").innerText = `/visualizer:off/`;
+					z("#visualizer", { style: { display: "none" } });
+					z("#moder",      { text: "/visualizer:off/" });
 					break;
 				}
 			}
 		});
-
-        // Handle shift clicking voteskip
-        document.addEventListener("keydown", (e) => {
-            if (e.key === "Shift") {
-                this.shift = true;  // :3
-                document.querySelector("#voteskip").innerText = "/downvote/";
-            }
-        });
-        document.addEventListener("keyup", (e) => {
-            if (e.key === "Shift") {
-                this.shift = false;
-                document.querySelector("#voteskip").innerText = this.voted ? `/voted/` : `/voteskip/`;
-            }
-        });
 
         // Handle visualizer mode
 		const existing_mode = +(localStorage.getItem("moder") ?? 4);
 		switch (existing_mode) {
 			case 1: case 2: case 3: case 4: case 5: case 6: {
 				this.audio.motion.mode = existing_mode;
-				document.querySelector("#moder").innerText = `/visualizer:m${this.audio.motion.mode}/`;
+				z("#moder", { text: `/visualizer:m${this.audio.motion.mode}/` });
 				break;
 			}
 			case 0: default: {
 				this.audio.motion.mode = 0;
 				this.audio.motion.stop();
-				document.getElementById("visualizer").style.display = "none";
-				document.querySelector("#moder").innerText = `/visualizer:off/`;
+				z("#visualizer", { style: { display: "none" } });
+				z("#moder",      { text: "/visualizer:off/" });
 				break;
 			}
 		}
 
         // Handle voteskipping
-        document.querySelector("#voteskip").addEventListener("click", () => {
+        z("#voteskip").addEventListener("click", () => {
             if (this.shift) this.websocket.send(JSON.stringify({ type: "downvote" }));
             this.websocket.send(JSON.stringify({ type: "voteskip" }));
             this.voted = !this.voted;
-            document.querySelector("#voteskip").innerText = this.voted ? `/voted/` : `/voteskip/`;
+            z("#voteskip", { text: this.voted ? "/voted/" : "/voteskip/" });
         });
 
         // Admin interface
@@ -173,6 +159,18 @@ new (class {
                 e.preventDefault();
                 if (this.admin) return this.admin.toggle();
                 this.admin = new (await import("/js/admin.js")).AdminInterface(this.websocket);
+            }
+            if (e.key === "Shift") {
+                this.shift = true;  // :3
+                z("#voteskip", { text: "/downvote/" });
+            }
+        });
+
+        // Handle shift clicking voteskip
+        document.addEventListener("keyup", (e) => {
+            if (e.key === "Shift") {
+                this.shift = false;
+                z("#voteskip", { text: this.voted ? "/voted/" : "/voteskip/" });
             }
         });
     }
@@ -184,22 +182,17 @@ new (class {
 
     connect() {
         this.websocket = new WebSocket(`${location.protocol === "https:" ? "wss" : "ws"}://${location.host}/stream`);
-        this.websocket.addEventListener("open", () => {
+        this.websocket.addEventListener("open", async () => {
             this.websocket.addEventListener("message", (e) => {
                 const data = JSON.parse(e.data);
                 this.receive(data);
             });
 
             // Refetch tracklist
-            // Making use of .then to not block .connect() calls
-            fetch("/tracklist").then(async (response) => {
-                this.tracklist = await response.json();
-                console.log(this.tracklist);
-            });
+            this.tracklist = await (await fetch("/tracklist")).json();
         });
         this.websocket.addEventListener("close", () => {
-            document.querySelector("#voteskip").className = "red";
-            document.querySelector("#voteskip").innerText = "Connection lost";
+            z("#voteskip", { class: "red", text: "Connection lost" });
             setTimeout(() => this.connect(), 5000);
         });
         if (this.admin) this.admin.connect(this.websocket);
@@ -212,9 +205,8 @@ new (class {
 
     update_progress(length) {
         length /= 1000;
-        document.querySelector("progress").value = this.audio.time;
-        document.querySelector("progress").max = length;
-        document.querySelector("#progress").innerText = `${this.seconds(Math.round(this.audio.time))} / ${this.seconds(Math.round(length))}`;
+        z("progress",  { value: this.audio.time, max: length });
+        z("#progress", { text: `${this.seconds(Math.round(this.audio.time))} / ${this.seconds(Math.round(length))}` });
     }
 
     receive(payload) {
@@ -227,10 +219,9 @@ new (class {
             case "update":
                 const { user_count, vote_count, vote_ratio } = data;
                 if (!vote_count) this.voted = false;
-                document.querySelector("#listeners").innerText = `(${user_count} listening along)`;
-                document.querySelector("#voted").innerText = `(${vote_count} / ${Math.ceil(user_count * (vote_ratio / 100))} voted)`;
-                document.querySelector("#voteskip").className = "";
-                document.querySelector("#voteskip").innerText = this.voted ? "/voted/" : "/voteskip/";
+                z("#listeners", { text: `(${user_count} listening along)` });
+                z("#voted",     { text: `(${vote_count} / ${Math.ceil(user_count * (vote_ratio / 100))} voted)` });
+                z("#voteskip",  { text:  this.voted ? "/voted/" : "/voteskip/", class: "" });
 
                 const { length, path, title } = data.this_track;
                 if (path === this.audio.path) return console.warn(`[Radio] Received an update request, but no song change was processed (skip, vote, client change).`);
@@ -239,8 +230,8 @@ new (class {
                 this.audio.preload_url(data.next_track);
                 this.sync_position();
 
-                document.querySelector("#download").href = `/audio/${path}`;
-                document.querySelector("#song-name").innerText = title;
+                z("#download",  { href: `/audio/${path}` });
+                z("#song-name", { text: title });
 
                 // Update UI
                 if (this.interval) clearInterval(this.interval);
